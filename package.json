@@ -1,0 +1,142 @@
+{
+	"name": "idx",
+	"displayName": "Incredibly Desirable Experience",
+	"description": "Use Markdown as a file explorer",
+	"version": "0.1.0",
+	"publisher": "markrobbins",
+	"author": "markrobbins",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.74.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"markdown",
+		"specs",
+		"tasks",
+		"features",
+		"wikilink",
+		"docs"
+	],
+	"main": "./dist/extension.cjs",
+	"files": [
+		"./dist/extension.cjs"
+	],
+	"scripts": {
+		"compile": "bun build.js",
+		"watch": "bun build.js --watch",
+		"vscode:prepublish": "bun build.js --production",
+		"package": "vsce package",
+		"install-vsix": "powershell -Command \"Get-Item *.vsix | Select-Object -First 1 | Foreach-Object { code --install-extension $_.FullName }\"",
+		"lint": "bun build.js && node --check dist/extension.cjs",
+		"unzip:latest": "bun unzip-latest.js zip"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@types/adm-zip": "^0.5.8",
+		"@types/bun": "^1.3.14",
+		"@types/node": "^22.14.0",
+		"@types/source-map-support": "^0.5.10",
+		"@types/vscode": "^1.85.0",
+		"adm-zip": "^0.5.17",
+		"typescript": "~5.8.2"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/markchristianrobbins/idx.git"
+	},
+	"bugs": {
+		"url": "https://github.com/markchristianrobbins/idx/issues"
+	},
+	"homepage": "https://github.com/markchristianrobbins/idx#readme",
+	"activationEvents": [
+		"onLanguage:markdown",
+		"onCommand:idx.openIdx",
+		"onCommand:idx.update",
+		"onCommand:idx.gotoFile",
+		"onCommand:idx.returnToIdx",
+		"onCommand:idx.returnToIdxPicker",
+		"onCommand:idx.jumpAny",
+		"onCommand:idx.jumpWithin",
+		"onCommand:idx.copyProjectUnlisted",
+		"onCommand:idx.copyProjectUnlistedPicker",
+		"onCommand:idx.toggleCheckbox",
+		"onCommand:idx.createMissing"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "idx.openIdx",
+				"title": "IDX: Open/Edit Index File"
+			},
+			{
+				"command": "idx.update",
+				"title": "IDX: Update File Listings"
+			},
+			{
+				"command": "idx.gotoFile",
+				"title": "IDX: Go to File/Folder under Cursor"
+			},
+			{
+				"command": "idx.returnToIdx",
+				"title": "IDX: Return to Index Location"
+			},
+			{
+				"command": "idx.returnToIdxPicker",
+				"title": "IDX: Return to Index Location Picker"
+			},
+			{
+				"command": "idx.jumpAny",
+				"title": "IDX: Jump to Any File (List All)"
+			},
+			{
+				"command": "idx.jumpWithin",
+				"title": "IDX: Jump Within Index Listings"
+			},
+			{
+				"command": "idx.copyProjectUnlisted",
+				"title": "IDX: Copy Project Unlisted Filelines"
+			},
+			{
+				"command": "idx.copyProjectUnlistedPicker",
+				"title": "IDX: Pick and Copy Project Unlisted Filelines"
+			},
+			{
+				"command": "idx.toggleCheckbox",
+				"title": "IDX: Toggle Checkbox on Current Line"
+			},
+			{
+				"command": "idx.createMissing",
+				"title": "IDX: Create Missing File or Folder"
+			}
+		],
+		"configuration": {
+			"title": "Incredibly Desirable Experience",
+			"properties": {
+				"idx.indexFilename": {
+					"type": "string",
+					"default": "idx.md",
+					"description": "Filename of the Markdown index to use as a file explorer (e.g. idx.md)."
+				},
+				"idx.excludePatterns": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [
+						"**/node_modules/**",
+						"**/.git/**",
+						"**/dist/**",
+						"**/.next/**",
+						"**/build/**",
+						"**/out/**",
+						"**/.vscode/**"
+					],
+					"description": "Glob-like patterns of folders/files to exclude from index searches and clipboard commands."
+				}
+			}
+		}
+	}
+}

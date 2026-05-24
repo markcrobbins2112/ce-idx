@@ -1,0 +1,125 @@
+{
+	"MD001": true, // Heading levels should only increment by one at a time
+	"MD002": true, // First heading should be a top-level heading
+	"MD003": {
+		"style": "consistent"
+	}, // Heading style [atx, atx_closed, setext, consistent]
+	"MD004": {
+		"style": "consistent"
+	}, // Unordered list style [asterisk, plus, dash, consistent]
+	"MD005": true, // Inconsistent indentation for list items at the same level
+	"MD006": true, // Consider starting bulleted lists at the beginning of the line
+	"MD007": {
+		"indent": 2
+	}, // Unordered list indentation (spaces used for nested child nodes)
+	"MD009": {
+		"br_spaces": 2,
+		"list_item_empty_lines": false,
+		"strict": false
+	}, // Trailing spaces configuration
+	"MD010": false,
+	"_MD010": {
+		"code_blocks": true,
+		"spaces_per_tab": 4
+	}, // Hard tabs configuration details
+	"MD011": true, // Reversed link syntax
+	"MD012": false, // Multiple consecutive blank lines (limits extra empty lines)
+	"MD013": {
+		"line_length": 160,
+		"heading_line_length": 160,
+		"code_block_line_length": 160,
+		"code_blocks": true,
+		"tables": true,
+		"headings": true,
+		"strict": false
+	}, // Default strict line width constraints
+	"MD014": true, // Dollar signs used before commands without showing output
+	"MD018": true, // No space after hash on atx style heading
+	"MD019": true, // Multiple spaces after hash on atx style heading
+	"MD020": true, // No space inside hashes on closed atx style heading
+	"MD021": true, // Multiple spaces inside hashes on closed atx style heading
+	"MD022": false, // Headings should be surrounded by blank lines
+	"MD023": true, // Headings must start at the beginning of the line
+	"MD024": {
+		// "allow_different_nesting": false, //Property allow_different_nesting is not allowed.
+		"siblings_only": false
+	}, // Identical text content rules for multiple headers
+	"MD025": {
+		"level": 1,
+		"front_matter_title": "^\\s*title\\s*[:=]"
+	}, // Top-level heading check structures
+	"MD026": {
+		"punctuation": ".,;:!?"
+	}, // Trailing punctuation exclusions in headings
+	"MD027": true, // Multiple spaces after blockquote symbol
+	"MD028": true, // Blank line inside blockquote
+	"MD029": {
+		"style": "one_or_ordered"
+	}, // Ordered list prefix styles [one, ordered, one_or_ordered, zero]
+	"MD030": {
+		"ul_single": 1,
+		"ol_single": 1,
+		"ul_multi": 1,
+		"ol_multi": 1
+	}, // Required spaces surrounding list elements
+	"MD031": false, // Fenced code blocks should be surrounded by blank lines
+	"MD032": false, // Lists should be surrounded by blank lines
+	"MD033": {
+		"allowed_elements": ["br"]
+	}, // Inline HTML restrictions configuration
+	"MD034": true, // Bare URL used instead of a markdown format link
+	"MD035": {
+		"style": "consistent"
+	}, // Horizontal rule style matching parameters
+	"MD036": true, // Emphasis used instead of a heading (e.g., **bold** used as a header)
+	"MD037": true, // Spaces inside emphasis markers
+	"MD038": true, // No-space-in-code: Spaces inside code span elements
+	"MD039": true, // Spaces inside link text layout
+	"MD040": true, // Fenced code blocks must have a language specified
+	"MD041": {
+		"level": 1,
+		"front_matter_title": "^\\s*title\\s*[:=]"
+	}, // First line file layout checks
+	"MD042": true, // Empty links are not allowed
+	"MD043": false,
+	"_MD043": {
+		"headings": []
+		// "headers": [] // Property headers is not allowed.
+	}, // Demands a strict pre-configured header sequence
+	"MD044": {
+		"names": [],
+		"code_blocks": true,
+		"html_elements": true
+	}, // Enforce exact custom word casing patterns
+	"MD045": true, // Images must have alternative text descriptions
+	"MD046": {
+		"style": "consistent"
+	}, // Code block layout consistency [fenced, indented, consistent]
+	"MD047": false, // Files should end with a single newline
+	"MD048": {
+		"style": "consistent"
+	}, // Fenced code blocks quote styles [backtick, tilde, consistent]
+	"MD049": {
+		"style": "consistent"
+	}, // Italics accent marker validation [asterisk, underscore, consistent]
+	"MD050": {
+		"style": "consistent"
+	}, // Bold strong emphasis marker consistency [asterisk, underscore, consistent]
+	"MD051": true, // Link fragments must point to valid local anchor tags
+	"MD052": true, // Reference links and images must use defined label components
+	"MD053": {
+		"ignored_definitions": [
+			"[]"
+		]
+	}, // Unused layout definitions tracking variables
+	"MD054": {
+		"url_inline": true // "consistent" Incorrect type. Expected "boolean".
+		// "url_reference": "consistent", // Property url_reference is not allowed.
+		// "image_inline": "consistent", // Property image_inline is not allowed.
+		// "image_reference": "consistent" // Property image_reference is not allowed.
+	}, // Enforced link styling patterns
+	"MD055": true, // Table horizontal rules should match structure
+	"MD056": true, // Table column count must match across rows
+	"MD058": true, // Tables should be surrounded by blank lines
+	"MD060": true // Table cell text padding consistency
+}

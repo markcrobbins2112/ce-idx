@@ -1,0 +1,23 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "WTD Extension (Bulletproof)",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"${workspaceFolder}/test-fixtures",
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"cwd": "${workspaceFolder}",
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.cjs"
+			],
+			"env": {
+				"VSCODE_DEBUG_MODE": "true"
+			},
+			"preLaunchTask": "bun-watch"
+		}
+	]
+}
