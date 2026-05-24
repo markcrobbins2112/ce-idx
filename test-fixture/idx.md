@@ -1,7 +1,9 @@
 # IDX
 ./.vscode/settings.json
-./text.txt
+- [X] ./text.txt
 ./text2.txt
+
+- [X] ./text2.txt
 
 ## Keys for commands
 

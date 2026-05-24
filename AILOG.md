@@ -1,5 +1,65 @@
 <!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
+
+## [2026-05-24T18:59:00Z]
+
+### 🎯 Primary Goals & Requirements
+Eliminate false-positive blue circles (missing files) matched on standard text lines inside the index such as settings descriptions, command names (e.g. `idx.openIdx`), or variables/contexts (e.g. `idxFileActive`, `!idxFileActive`).
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **`src/extension.ts` Refactoring**:
+  - Refined the `isExplicitPath` parser condition inside the explorer document iterator.
+  - Plain alphanumeric words without extensions or directory markers are no longer speculated as missing files on disk.
+  - Added strict, extensible checking of standard extensions lists (`eligibleExtensions` and common web/code assets standard suffixes like `.png`, `.css`, etc.) for any paths containing a single dot character.
+  - Preserved detection of dotfiles (e.g., `.env`, `.gitignore`) and folders.
+- **Build Verification**: Compile checks via `npx tsc --noEmit` build successfully with zero errors.
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify that standard checklist lines and folders continue to receive precise 🔵, ⚪, and 🟢 decorations.
+
+## [2026-05-24T18:56:00Z]
+
+### 🎯 Primary Goals & Requirements
+1. Resolve developer concerns regarding command and keybindings visibility contexts.
+2. Implement an elegant Status Bar Indicator representing the real-time values of `idxFileActive` and `idxCursorOnFileLine` context flags.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **`src/extension.ts` Refactoring**:
+  - Defined a clean, typed container class `IdxStatusBarContainer` within the `_classes` region following container class TS guidelines.
+  - Initialized `IdxStatusBarContainer.statusBarItem` on extension activation with full tooltips and key command routes.
+  - Linked `updateContexts` to continuously feed context flag state evaluations into `IdxStatusBarContainer.update(fileActive, cursorOnFileLine)`.
+  - Added visual helper accents (`🟢 Yes` / `🔴 No`) to help users know the precise state of their interactive explorers instantly.
+- **Build Verification**: Verified type-safety of added status indicators via `npx tsc --noEmit` which compiled with zero errors.
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify status indicator layout updates on selection changes inside markdown versus code files.
+
+## [2026-05-24T18:29:00Z]
+
+### 🎯 Primary Goals & Requirements
+Address the VS Code Extension packaging warning: `"Relative image URLs require a repository with HTTPS protocol to be specified in the package.json"`.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **`package.json` Repository Config**:
+  - Replaced the repository URL format from `git+https://github.com/markchristianrobbins/idx.git` to a direct HTTPS format `https://github.com/markchristianrobbins/idx.git`.
+  - This allows `vsce package` to successfully parse the repository and rewrite relative image paths (like screenshots or logos inside markdown files) into absolute Marketplace-compatible URLs automatically.
+
+---
+
+### 🚀 Recommended Next Steps
+- Continue verifying other fields in `package.json` for VSCE compliance.
+- Test packaging command (`vsce package`) to ensure flawless artifact generation.
 
 ## [2026-05-24T18:16:28Z]
 

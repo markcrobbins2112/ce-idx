@@ -280,7 +280,9 @@ async function parseIdxMarkdown(documentText: string, workspaceRoot: string, ope
 			const cleaned = sanitizeFileSpecWord(word);
 			if (!cleaned) continue;
 
-			const isExplicitPath = cleaned.includes('/') || cleaned.includes('\\') || cleaned.includes('.') || cleaned.endsWith('.*') || /^[a-zA-Z0-9_\-]+$/.test(cleaned);
+			const ext = path.extname(cleaned).substring(1).toLowerCase();
+			const isEligibleOrCommonExt = eligibleExts.includes(ext) || ['png', 'jpg', 'jpeg', 'gif', 'svg', 'css', 'html', 'less', 'scss', 'yml', 'yaml', 'toml', 'xml', 'ini', 'cfg', 'conf', 'sh', 'bash', 'zsh', 'bat', 'cmd', 'ps1', 'py', 'rb', 'pl', 'pm', 'php', 'aspx', 'jsp', 'c', 'cpp', 'h', 'hpp', 'cs', 'java', 'kt', 'kts', 'swift', 'rs', 'go', 'lock', 'env', 'gitignore'].includes(ext);
+			const isExplicitPath = cleaned.includes('/') || cleaned.includes('\\') || cleaned.endsWith('.*') || cleaned.startsWith('.') || (cleaned.includes('.') && isEligibleOrCommonExt);
 
 			const { matchedPaths } = await resolveFileSpec(cleaned, indentation, folderStack, workspaceRoot, allWorkspaceFiles, eligibleExts);
 
@@ -572,6 +574,44 @@ class IdxCodeActionProvider implements vscode.CodeActionProvider {
 	//#endregion _class_IdxCodeActionProvider_functions
 }
 //#endregion _class_IdxCodeActionProvider
+
+//#region _class_IdxStatusBarContainer
+class IdxStatusBarContainer {
+	//#region _class_IdxStatusBarContainer_vars
+	static statusBarItem: vscode.StatusBarItem | undefined;
+	//#endregion _class_IdxStatusBarContainer_vars
+
+	//#region _class_IdxStatusBarContainer_functions
+	/** Initialize the status bar item
+	 * @static
+	 * @param {vscode.ExtensionContext} context The extension context to push subscriptions
+	 */
+	static init(context: vscode.ExtensionContext) {
+		const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+		item.text = "IDX: Active: 🔴 No | Fileline: 🔴 No";
+		item.tooltip = "IDX Context Status Tracker";
+		item.command = "idx.openIdx";
+		item.show();
+		IdxStatusBarContainer.statusBarItem = item;
+		context.subscriptions.push(item);
+	}
+
+	/** Update status bar content based on current flags
+	 * @static
+	 * @param {boolean} fileActive True if the configured idx.md file is currently active
+	 * @param {boolean} cursorOnFileLine True if the cursor is currently on a parsed fileline
+	 */
+	static update(fileActive: boolean, cursorOnFileLine: boolean) {
+		const item = IdxStatusBarContainer.statusBarItem;
+		if (item) {
+			const activeStr = fileActive ? "🟢 Yes" : "🔴 No";
+			const filelineStr = cursorOnFileLine ? "🟢 Yes" : "🔴 No";
+			item.text = `IDX: Active: ${activeStr} | Fileline: ${filelineStr}`;
+		}
+	}
+	//#endregion _class_IdxStatusBarContainer_functions
+}
+//#endregion _class_IdxStatusBarContainer
 //#endregion _classes
 
 //#region _state
@@ -596,6 +636,8 @@ async function updateContexts() {
 	if (!editor) {
 		vscode.commands.executeCommand('setContext', 'idxFileActive', false);
 		vscode.commands.executeCommand('setContext', 'idxCursorOnFileLine', false);
+		const Sbc_ = IdxStatusBarContainer;
+		Sbc_.update(false, false);
 		return;
 	}
 
@@ -606,6 +648,8 @@ async function updateContexts() {
 	if (path.basename(doc.uri.fsPath) !== idxFilename) {
 		vscode.commands.executeCommand('setContext', 'idxFileActive', false);
 		vscode.commands.executeCommand('setContext', 'idxCursorOnFileLine', false);
+		const Sbc_ = IdxStatusBarContainer;
+		Sbc_.update(false, false);
 		return;
 	}
 
@@ -614,6 +658,8 @@ async function updateContexts() {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) {
 		vscode.commands.executeCommand('setContext', 'idxCursorOnFileLine', false);
+		const Sbc_ = IdxStatusBarContainer;
+		Sbc_.update(true, false);
 		return;
 	}
 
@@ -623,6 +669,8 @@ async function updateContexts() {
 
 	const hasFileLine = fileLines.some(fl => fl.lineIndex === cursorLine);
 	vscode.commands.executeCommand('setContext', 'idxCursorOnFileLine', hasFileLine);
+	const Sbc_ = IdxStatusBarContainer;
+	Sbc_.update(true, hasFileLine);
 }
 //#endregion _state
 
@@ -1695,6 +1743,9 @@ function commandsSetup(context: vscode.ExtensionContext) {
 export function activate(context: vscode.ExtensionContext) {
 	const manager = new GutterDecorationManager();
 	const interval = watchSetup(context, manager);
+
+	const Sbc_ = IdxStatusBarContainer;
+	Sbc_.init(context);
 
 	context.subscriptions.push({
 		dispose() {
