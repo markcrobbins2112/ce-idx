@@ -1,19 +1,35 @@
+<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD040 -->
 # IDX Technical Manual
 
-This guide describes the structural architecture, module layout, internal algorithms, optimization behaviors, and technical specifications of the
-IDX VS Code Extension codebase.
+This guide describes the structural architecture, module layout, internal algorithms, optimization behaviors, and technical specifications of the IDX VS Code Extension codebase.
 
 ---
 
 ## 🏗️ 1. Architecture Overview
 
-IDX is designed as a standalone, zero-dependency VS Code extension optimized for fast startup and low resource overhead. It compiles into a single
-CommonJS bubble via `esbuild`.
+IDX is designed as a standalone, zero-dependency VS Code extension optimized for fast startup and low resource overhead. It compiles into a single CommonJS bubble via its configuration pipeline.
 
 The implementation flow is divided into three key systems:
-
 ![IDX System](assets/system.png)
 
+```
++-------------------------------------------------------------+
+|                     IDX Markdown Document                   |
++-------------------------------------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+|             Indentation & Heading Context Parser            |
+|       (Tracks scopes, checkboxes, eligible suffixes)        |
++-------------------------------------------------------------+
+                              |
+                              v
++-------------------------------+-----------------------------+
+|             Cache             |          Decoration         |
+|   (fileStatsCache, watchers)  |  (circles, squares vector)  |
++-------------------------------+-----------------------------+
+```
 
 ---
 
@@ -44,50 +60,37 @@ The parser `parseIdxMarkdown` processes files line-by-line while tracking folder
 2. **Indentation Sizing**: Calculates the exact spacing leading a line (counting tab sizes as `4` spaces).
 3. **Folder Context Stack**:
    - If a path is verified to be a folder, it is pushed onto `folderStack: Array<{ indentation: number, resolvedPath: string }>` alongside its indent-signature.
-   - On succeeding lines, the stack is popped until the current indentation exceeds that of the parent folder. This maintains strict directory scoping without
-   requiring complex configurations.
+   - On succeeding lines, the stack is popped until the current indentation exceeds that of the parent folder. This maintains strict directory scoping without requiring complex configurations.
 
 ---
 
 ## 🔎 3. Core Algorithm: Candidate Resolve Logic
 
-```typescript
-// How IDX parses and resolves raw strings (e.g. "extension" to "/work/src/extension.ts")
-const candidates = [cleanedFilepath];
-if (!cleanedFilepath.includes('.')) {
-  const commonExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css', '.html', '.md'];
-  for (const ext of commonExtensions) {
-    candidates.push(cleanedFilepath + ext);
-  }
-}
-```
-For each candidate:
-1. Checked for **Absolute Pathing**.
-2. Evaluated relative to the **Current Nested Stack Directory**.
-3. Checked relative to the **Workspace Folder Root**.
-4. First match wins, defining both the exact path on disk and updating the cache status.
+When a filespec is evaluated, it resolves via multiple layers:
+1. **Absolute & Parent Relative Resolution**: Evaluated relative to the active folder in the indentation stack, or against the workspace root.
+2. **Extension List Candidates**: If the token is extensionless or ends in `.*`, the system draws files configured in `idx.eligibleExtensions` (default: `js,ts,md,txt,json,jsonc`), ordering candidates by preferences.
+3. **Multi-Match Evaluation**: If a string maps to multiple physical files over different directories, it is flagged as `isMultiMatch`:
+   - Visualized on the gutter with rectangular square signs (outline ▫️ if closed, filled ▪️ if open).
+   - Activates picker queries during navigation (`idx.gotoFile` and `idx.openFile`) to let the developer select which location to open.
 
 ---
 
-## 🛰️ 4. Commands Integration
+## 🛰️ 4. Commands, Keybindings & Context Flags
 
-Every command is registered through the activation context subscriptions:
-
-1. **`idx.openIdx`**: Automatically locates `idx.indexFilename` in settings. If absent, triggers an editor picker to create a pristine `idx.md` template.
-1. **`idx.update`**: Finds all workspace files omitting `excludePatterns`, contrasts them with parsed references inside the current index, and appends
-  the diff under `# New Files` / `# Missing Files`.
-1. **`idx.gotoFile`**: Performs a localized workspace stat check. If a folder, yields an async `QuickPick` featuring customized categories
-  (Open Files vs. Closed Files) with custom live file hovers.
-1. **`idx.toggleCheckbox`**: Focuses the current active line, localizes brackets syntax `[ ]` or `[x]`, and mutates the character index via `vscode.WorkspaceEdit`.
-1. **`idx.createMissing`**: Orchestrates parent directory recursion and touches files or creates empty folders.
-1. **`IdxCodeActionProvider`**: Listens for cursor positions in Markdown lines and registers context-appropriate action payloads
-  (such as checkbox togglers and rapid-genesis fixes).
+The extension establishes real-time event updates to drive the availability of key commands via contexts:
+- **Context Flags**:
+  - `idxFileActive`: True when focus is on the `idx.md` workspace index file.
+  - `idxCursorOnFileLine`: True when the cursor focuses any line holding a parsed path filespec.
+- **Key Navigation Commands**:
+  - **`idx.gotoFile`** (F2): Opens and fully activates/focuses the target.
+  - **`idx.openFile`** (Alt+F2): Uses preview-safe backgrounds rendering with `preserveFocus: true` so the user remains fully on the index.
+  - **`idx.closeFile`** (F4): Resolves paths for the current line and closes corresponding editor tab groups.
+  - **`idx.toggleCheckbox`** (Insert X): Alters bracket contents `[ ]` <-> `[x]` on disk.
 
 ---
 
 ## 🔧 5. Workspace Build & Configuration
 
 The build stack consists of:
-- **Bundler**: `esbuild` using the parameters defined in `esbuild.config.js` or `build.js` targeting Node v16 for clean, optimized production deliverables.
 - **Transpilation**: TypeScript definitions paired with a custom `tsconfig.json` set to generate CommonJS modules.
-- **Linter**: Built-in lint script validation tests ensuring zero compiler or formatting errors exist across codebase edits.
+- **Verification Tools**: Dry-run checking can be performed safely via `npx tsc --noEmit`.

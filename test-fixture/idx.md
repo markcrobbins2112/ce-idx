@@ -1,44 +1,28 @@
-<!-- markdownlint-disable MD013 -->
 # IDX
 ./.vscode/settings.json
-
-
-idx.openIdx // IDX: Open/Edit Index File
-idx.update // IDX: Update File Listings
-idx.gotoFile // IDX: Go to File/Folder under Cursor
-idx.returnToIdx // IDX: Return to Index Location
-idx.returnToIdxPicker // IDX: Return to Index Location Picker
-idx.jumpAny // IDX: Jump to Any File (List All)
-idx.jumpWithin // IDX: Jump Within Index Listings
-idx.copyProjectUnlisted // IDX: Copy Project Unlisted Filelines
-idx.copyProjectUnlistedPicker //  IDX: Pick and Copy Project Unlisted Filelines
-idx.toggleCheckbox // IDX: Toggle Checkbox on Current Line
-idx.createMissing // IDX: Create Missing File or Folder
-
-## Need two context when flags
-- idxFileActive
-- idxCursorOnFileLine: idx File is active and current line has a filepath
-
-## Need new commands
-- idx.openFile: when - idxCursorOnFileLine - same as idx.gotoFile but no file activation
-- idx.closeFile: when - idxCursorOnFileLine - close an open file
-
-## When for commands
-idx.openIdx: when - !idxFileActive
-idx.update: when - idxFileActive
-idx.gotoFile: when - idxCursorOnFileLine
-idx.openFile: when - idxCursorOnFileLine
-idx.closeFile: when - idxCursorOnFileLine
-idx.returnToIdx: when - !idxFileActive
-idx.returnToIdxPicker: when - !idxFileActive
-idx.jumpAny: when - idxFileActive
-idx.jumpWithin: when - idxFileActive
-idx.copyProjectUnlisted: when - none
-idx.copyProjectUnlistedPicker: when - none
-idx.toggleCheckbox: when - idxFileActive
-idx.createMissing: when - idxCursorOnFileLine
+./text.txt
+./text2.txt
 
 ## Keys for commands
+
+
+
+## Need two context when flags
+
+## Need new commands
+
+## When for commands
+
+
+
+## New Setting
+## Other filespecs
+## Directory filespecs on files
+## Colors for multi-matching filelines
+
+## Missing Files
+<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD038 -->
 idx.openIdx: when - !idxFileActive - "` i"
 idx.update: when - idxFileActive - "F5"
 idx.gotoFile: when - idxCursorOnFileLine - "F2"
@@ -52,8 +36,34 @@ idx.copyProjectUnlisted: when - idxFileActive - "alt+i ctrl+insert"
 idx.copyProjectUnlistedPicker: when - idxFileActive - "alt+i alt+insert"
 idx.toggleCheckbox: when - idxFileActive - "insert x"
 idx.createMissing: when - idxCursorOnFileLine
-
-## New Setting
+- idxFileActive
+- idxCursorOnFileLine: idx File is active and current line has a filepath
+- idx.openFile: when - idxCursorOnFileLine - same as idx.gotoFile but no file activation
+- idx.closeFile: when - idxCursorOnFileLine - close an open file
+idx.openIdx: when - !idxFileActive
+idx.update: when - idxFileActive
+idx.gotoFile: when - idxCursorOnFileLine
+idx.openFile: when - idxCursorOnFileLine
+idx.closeFile: when - idxCursorOnFileLine
+idx.returnToIdx: when - !idxFileActive
+idx.returnToIdxPicker: when - !idxFileActive
+idx.jumpAny: when - idxFileActive
+idx.jumpWithin: when - idxFileActive
+idx.copyProjectUnlisted: when - none
+idx.copyProjectUnlistedPicker: when - none
+idx.toggleCheckbox: when - idxFileActive
+idx.createMissing: when - idxCursorOnFileLine
+idx.openIdx // IDX: Open/Edit Index File
+idx.update // IDX: Update File Listings
+idx.gotoFile // IDX: Go to File/Folder under Cursor
+idx.returnToIdx // IDX: Return to Index Location
+idx.returnToIdxPicker // IDX: Return to Index Location Picker
+idx.jumpAny // IDX: Jump to Any File (List All)
+idx.jumpWithin // IDX: Jump Within Index Listings
+idx.copyProjectUnlisted // IDX: Copy Project Unlisted Filelines
+idx.copyProjectUnlistedPicker //  IDX: Pick and Copy Project Unlisted Filelines
+idx.toggleCheckbox // IDX: Toggle Checkbox on Current Line
+idx.createMissing // IDX: Create Missing File or Folder
 - Eligable Extensions List
   - Comma seperated list of extensions
   - Ordered by preference
@@ -81,7 +91,6 @@ idx.createMissing: when - idxCursorOnFileLine
           - whenever the returnToIdx/returnToIdxPicker commands cannot occur, since the file does not exist but
             - if the file returning from is a filename.{ext not in ext list} then offer a picker of all eligable filespecs
             - returning from filenameonly.{ext not in ext list} in any workspace directory could return to this filespec
-## Other filespecs
 - Example: filename.ext
   - will match any filename.ext in any workspace directory
   - use a square of proper color in the gutter
@@ -90,7 +99,6 @@ idx.createMissing: when - idxCursorOnFileLine
     - whenever the returnToIdx/returnToIdxPicker commands occur, then the filespec is generic so that:
       - if the file returning from is a filename.ext then offer a picker of all eligable filespecs
       - returning from filename.ext in any workspace directory could return to this filespec
-## Directory filespecs on files
 - Example: filename.ext
   - multi directory, as described above
 - Exmple: ./filename.ext
@@ -102,8 +110,5 @@ idx.createMissing: when - idxCursorOnFileLine
       - /filename.ext
     - the sythesized path would be:
       - ./parentfolder/filename.ext
-## Colors for multi-matching filelines
 - if any are open then green
 - if none are open and any exist then white
-
-##

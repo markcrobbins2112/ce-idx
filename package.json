@@ -45,7 +45,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/markchristianrobbins/idx.git"
+		"url": "https://github.com/markchristianrobbins/idx.git"
 	},
 	"bugs": {
 		"url": "https://github.com/markchristianrobbins/idx/issues"
@@ -56,6 +56,8 @@
 		"onCommand:idx.openIdx",
 		"onCommand:idx.update",
 		"onCommand:idx.gotoFile",
+		"onCommand:idx.openFile",
+		"onCommand:idx.closeFile",
 		"onCommand:idx.returnToIdx",
 		"onCommand:idx.returnToIdxPicker",
 		"onCommand:idx.jumpAny",
@@ -78,6 +80,14 @@
 			{
 				"command": "idx.gotoFile",
 				"title": "IDX: Go to File/Folder under Cursor"
+			},
+			{
+				"command": "idx.openFile",
+				"title": "IDX: Open File under Cursor (No Focus)"
+			},
+			{
+				"command": "idx.closeFile",
+				"title": "IDX: Close Open File under Cursor"
 			},
 			{
 				"command": "idx.returnToIdx",
@@ -112,6 +122,68 @@
 				"title": "IDX: Create Missing File or Folder"
 			}
 		],
+		"keybindings": [
+			{
+				"command": "idx.openIdx",
+				"key": "` i",
+				"when": "!idxFileActive"
+			},
+			{
+				"command": "idx.update",
+				"key": "f5",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.gotoFile",
+				"key": "f2",
+				"when": "idxCursorOnFileLine"
+			},
+			{
+				"command": "idx.openFile",
+				"key": "alt+f2",
+				"when": "idxCursorOnFileLine"
+			},
+			{
+				"command": "idx.closeFile",
+				"key": "f4",
+				"when": "idxCursorOnFileLine"
+			},
+			{
+				"command": "idx.returnToIdx",
+				"key": "` r",
+				"when": "!idxFileActive"
+			},
+			{
+				"command": "idx.returnToIdxPicker",
+				"key": "` i",
+				"when": "!idxFileActive"
+			},
+			{
+				"command": "idx.jumpAny",
+				"key": "alt+` i",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.jumpWithin",
+				"key": "alt+` alt+i",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.copyProjectUnlisted",
+				"key": "alt+i ctrl+insert",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.copyProjectUnlistedPicker",
+				"key": "alt+i alt+insert",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.toggleCheckbox",
+				"key": "insert x",
+				"when": "idxFileActive"
+			}
+		],
 		"configuration": {
 			"title": "Incredibly Desirable Experience",
 			"properties": {
@@ -135,6 +207,11 @@
 						"**/.vscode/**"
 					],
 					"description": "Glob-like patterns of folders/files to exclude from index searches and clipboard commands."
+				},
+				"idx.eligibleExtensions": {
+					"type": "string",
+					"default": "js,ts,md,txt,json,jsonc",
+					"description": "Comma separated list of extensions ordered by preference to determine if an ambiguous filespec is valid."
 				}
 			}
 		}
