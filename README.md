@@ -48,6 +48,17 @@ As you review your index markdown file (`idx.md`), **IDX** places colored vector
 | `idx.copyProjectUnlistedPicker` | `Alt+i Alt+Insert` | `idxFileActive` | Pick specific unlisted files via menu to copy. |
 | `idx.toggleCheckbox` | `Insert X` | `idxFileActive` | Direct command shortcut to check/uncheck checkmarks. |
 | `idx.createMissing` | - | `idxCursorOnFileLine` | Programmatically triggers generation flow for targets. |
+| `idx.setKeybindings` | - | `idxFileActive` | Select keybindings to write to global User keybindings.json (VS Code/Cursor/etc). |
+| `idx.collectEditors` | `ctrl+`f11` | `idxFileActive` | Lists open tabs allowing grouping/restructuring editor positions. |
+| `idx.closeAllMarkdownEditors` | `ctrl+`ctrl+f4` | `idxFileActive` | Closes other open markdown tabs while keeping the explorer index. |
+| `idx.closeAllMarkdownEditorsInGroup` | `ctrl+`f4` | `idxFileActive` | Select a group to close all its active markdown tabs except the explorer. |
+| `idx.openSelectedFiles` | - | `idxFileActive` | Bulk-opens all files listed in the multi-line highlighted selection. |
+| `idx.closeSelectedFiles` | - | `idxFileActive` | Bulk-closes all active tabs corresponding to files in the selection. |
+| `idx.gotoSelectedFile` | - | `idxFileActive` | Activates/focuses files matching target filelines in your range. |
+| `idx.checkSelectedCheckboxes` | - | `idxFileActive` | Marks selected files or items as completed. |
+| `idx.uncheckSelectedCheckboxes` | - | `idxFileActive` | Marks selected files or items as incomplete. |
+| `idx.removeSelectedCheckboxes` | - | `idxFileActive` | Removes checkbox brackets from your range selection. |
+| `idx.addSelectedCheckboxes` | - | `idxFileActive` | Appends empty checklist boxes to all selection lines. |
 
 ---
 

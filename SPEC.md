@@ -64,6 +64,17 @@ Commands:
 - `idx.copyProjectUnlistedPicker`: Multi-select dropdown to choose specific unlisted files to copy. (Available when `idxFileActive`)
 - `idx.toggleCheckbox`: Programmatically checks/unchecks checkbox on cursor line. (Available when `idxFileActive`)
 - `idx.createMissing`: Launches creation flow for file or directory on cursor line. (Available when `idxCursorOnFileLine`)
+- `idx.setKeybindings`: Dynamic setting of extension shortcut keybindings to User-level global keybindings configuration. (Available when `idxFileActive`)
+- `idx.collectEditors`: Organizes loose editors and places them onto custom VS Code window groups. (Available when `idxFileActive`)
+- `idx.closeAllMarkdownEditors`: Performs bulk-closes of non-index markdown documents. (Available when `idxFileActive`)
+- `idx.closeAllMarkdownEditorsInGroup`: Picker-configured group-level closure of irrelevant documentation. (Available when `idxFileActive`)
+- `idx.openSelectedFiles`: Multi-line selection flow to open multiple documents simultaneously without grab focus. (Available when `idxFileActive`)
+- `idx.closeSelectedFiles`: Multi-line selection flow to close files matching selected filespecs. (Available when `idxFileActive`)
+- `idx.gotoSelectedFile`: Multi-line selection command to locate and navigate to the selected filesystem entry. (Available when `idxFileActive`)
+- `idx.checkSelectedCheckboxes`: Bulk-check operation on selected active lines. (Available when `idxFileActive`)
+- `idx.uncheckSelectedCheckboxes`: Bulk-uncheck operation on selected active lines. (Available when `idxFileActive`)
+- `idx.removeSelectedCheckboxes`: Bulk-remove operation on checkboxes of selected lines. (Available when `idxFileActive`)
+- `idx.addSelectedCheckboxes`: Bulk-add checkboxes to chosen selection targets. (Available when `idxFileActive`)
 
 ---
 

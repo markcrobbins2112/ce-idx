@@ -86,6 +86,16 @@ The extension establishes real-time event updates to drive the availability of k
   - **`idx.openFile`** (Alt+F2): Uses preview-safe backgrounds rendering with `preserveFocus: true` so the user remains fully on the index.
   - **`idx.closeFile`** (F4): Resolves paths for the current line and closes corresponding editor tab groups.
   - **`idx.toggleCheckbox`** (Insert X): Alters bracket contents `[ ]` <-> `[x]` on disk.
+  - **`idx.setKeybindings`**: Resolves global User keybindings directory (supporting VS Code, Insiders, VSCodium, Code-OSS, and Cursor) to write customized bindings.
+  - **`idx.collectEditors`** (Ctrl+` F11): MultiSelect picker list open editors to move them safely to selected or new tab groups.
+  - **`idx.closeAllMarkdownEditors`** (Ctrl+` Ctrl+F4): Closes non-active markdown sheets.
+  - **`idx.closeAllMarkdownEditorsInGroup`** (Ctrl+` F4): Selection interface to close group markdown editors.
+- **Multi-line Range Operations**:
+  - Commands prefixing `idx.*Selected*` evaluate filespecs matching all user-highlighted lines, performing bulk opens, bulk closes, bulk checkbox checks, unchecks, deletions, and additions recursively.
+- **Real-time Glyph Margin Renderers**:
+  - Gutter decorations are initialized in the `editor.glyphMargin` layout area automatically for an extremely premium and clear visual representation.
+- **Filespec Syntax Highlighting**:
+  - Semantic colors are applied dynamically based on the exact filespec type (such as cyan for parent folders dependency, or yellow for explicit directories).
 
 ---
 

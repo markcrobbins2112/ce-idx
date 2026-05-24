@@ -66,3 +66,18 @@ You can use this interactive test sheet directly with IDX inside VS Code to veri
   - Trigger command. Confirm you can fuzzy search all project files, grouped clean by open/closed status.
 - [ ] **`idx.copyProjectUnlisted`** (IDX: Copy Project Unlisted Filelines) (Key: `Alt+i Ctrl+Insert`)
   - Fire command and paste results into `idx.md`. Verify it copies unlisted items with checkbox structures, respecting your custom ignored exclusion patterns.
+
+---
+
+## 🚀 Advanced Utilities & Multi-line QA List
+- [ ] **Global User Keybindings Config (`idx.setKeybindings`)**:
+  - Open IDX Index, trigger CMD/Ctrl+Shift+P -> "IDX: Set User Keybindings".
+  - Select items from QuickPick. Verify they are written directly to your global User `keybindings.json` (supported across VS Code, Insiders, VSCodium, Code-OSS, and Cursor).
+- [ ] **Collect Editors (`idx.collectEditors`)**:
+  - Open multiple file tabs, trigger Ctrl+` F11. Select specific tabs in the QuickPick and a target pane/new group to rearrange your editor structures instantly.
+- [ ] **Bulk Markdown Closes**:
+  - Run `idx.closeAllMarkdownEditors` (on index, Key: `Ctrl+` Ctrl+F4`) or `idx.closeAllMarkdownEditorsInGroup` (Key: `Ctrl+` F4`). Verify all other open markdown files are closed, leaving the active `idx.md` index open.
+- [ ] **Multi-line Range Operations**:
+  - Highlight multiple filelines in `idx.md`. Select any of the multi-line commands (e.g. `idx.openSelectedFiles` or `idx.checkSelectedCheckboxes`). Verify actions are applied to all valid highlighted targets simultaneously.
+- [ ] **Cursor Environment Compatibility**:
+  - Run the extension in Cursor. Verify the extension detects Cursor correctly via `vscode.env.appName` and maps the configuration data to Cursor's User path.

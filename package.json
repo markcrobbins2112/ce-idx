@@ -65,7 +65,18 @@
 		"onCommand:idx.copyProjectUnlisted",
 		"onCommand:idx.copyProjectUnlistedPicker",
 		"onCommand:idx.toggleCheckbox",
-		"onCommand:idx.createMissing"
+		"onCommand:idx.createMissing",
+		"onCommand:idx.setKeybindings",
+		"onCommand:idx.collectEditors",
+		"onCommand:idx.closeAllMarkdownEditors",
+		"onCommand:idx.closeAllMarkdownEditorsInGroup",
+		"onCommand:idx.openSelectedFiles",
+		"onCommand:idx.closeSelectedFiles",
+		"onCommand:idx.gotoSelectedFile",
+		"onCommand:idx.checkSelectedCheckboxes",
+		"onCommand:idx.uncheckSelectedCheckboxes",
+		"onCommand:idx.removeSelectedCheckboxes",
+		"onCommand:idx.addSelectedCheckboxes"
 	],
 	"contributes": {
 		"commands": [
@@ -120,6 +131,50 @@
 			{
 				"command": "idx.createMissing",
 				"title": "IDX: Create Missing File or Folder"
+			},
+			{
+				"command": "idx.setKeybindings",
+				"title": "IDX: Set User Keybindings"
+			},
+			{
+				"command": "idx.collectEditors",
+				"title": "IDX: Collect Editors"
+			},
+			{
+				"command": "idx.closeAllMarkdownEditors",
+				"title": "IDX: Close All Markdown Editors"
+			},
+			{
+				"command": "idx.closeAllMarkdownEditorsInGroup",
+				"title": "IDX: Close All Markdown Editors In Group"
+			},
+			{
+				"command": "idx.openSelectedFiles",
+				"title": "IDX: Open Selected Files (No Focus)"
+			},
+			{
+				"command": "idx.closeSelectedFiles",
+				"title": "IDX: Close Selected Files"
+			},
+			{
+				"command": "idx.gotoSelectedFile",
+				"title": "IDX: Go to Selected File/Folder"
+			},
+			{
+				"command": "idx.checkSelectedCheckboxes",
+				"title": "IDX: Mark Selected Lines Completed"
+			},
+			{
+				"command": "idx.uncheckSelectedCheckboxes",
+				"title": "IDX: Mark Selected Lines Incomplete"
+			},
+			{
+				"command": "idx.removeSelectedCheckboxes",
+				"title": "IDX: Remove Selection Checkboxes"
+			},
+			{
+				"command": "idx.addSelectedCheckboxes",
+				"title": "IDX: Add Checkboxes to Selection"
 			}
 		],
 		"keybindings": [
@@ -181,6 +236,21 @@
 			{
 				"command": "idx.toggleCheckbox",
 				"key": "insert x",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.collectEditors",
+				"key": "ctrl+` f11",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.closeAllMarkdownEditors",
+				"key": "ctrl+` ctrl+f4",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.closeAllMarkdownEditorsInGroup",
+				"key": "ctrl+` f4",
 				"when": "idxFileActive"
 			}
 		],

@@ -3,53 +3,53 @@
 # AITASKS
 
 ## New Commands
-### Set User Keybindings
-- MultiSelect Picklist that will Control Which extension keybindings are written to keybindings.json
-  - keybindings are written or removed dynamically according to the selection
+### [x] Set User Keybindings
+- [x] MultiSelect Picklist that will Control Which extension keybindings are written to keybindings.json
+  - [x] keybindings are written or removed dynamically according to the selection
 
-### Collect Editors
-- when idx.md is active
-- key "ctrl+` f11"
-- with open files
-  - multiSelect picker listing open editors
-    - with selected files, a new picker listing groups to move selected editors to, or new group
+### [x] Collect Editors
+- [x] when idx.md is active
+- [x] key "ctrl+` f11"
+- [x] with open files
+  - [x] multiSelect picker listing open editors
+    - [x] with selected files, a new picker listing groups to move selected editors to, or new group
 
-### Close all markdown editors
-- when idx.md is active
-- key "ctrl+` ctrl+f4"
-- do not close idx.md
+### [x] Close all markdown editors
+- [x] when idx.md is active
+- [x] key "ctrl+` ctrl+f4"
+- [x] do not close idx.md
 
-### Close all markdown editors in group
-- when idx.md is active
-- key "ctrl+` f4"
-- picker to select group
-- do not close idx.md
+### [x] Close all markdown editors in group
+- [x] when idx.md is active
+- [x] key "ctrl+` f4"
+- [x] picker to select group
+- [x] do not close idx.md
 
-## Use Glyph Margin instead of Gutter for icons
-- change the visibilty of the Glyph Margin to true automatically
+## [x] Use Glyph Margin instead of Gutter for icons
+- [x] change the visibilty of the Glyph Margin to true automatically
 
-## Paint the filespec of a fileline
-- for filespec types, color the text
-  - fullpath: white
-  - relativepath: light grey
-  - filenameonly: red
-  - parent dependent /filename or /filename.ext: cyan
-  - directory unspecified filename.ext: orange
-  - folder ./folder or fullpath/folder: yellow
-  - wildcard: filenameonly.* or *.ext or /filename.* or or /file*.* or etc: purple
+## [x] Paint the filespec of a fileline
+- [x] for filespec types, color the text
+  - [x] fullpath: white
+  - [x] relativepath: light grey
+  - [x] filenameonly: red
+  - [x] parent dependent /filename or /filename.ext: cyan
+  - [x] directory unspecified filename.ext: orange
+  - [x] folder ./folder or fullpath/folder: yellow
+  - [x] wildcard: filenameonly.* or *.ext or /filename.* or or /file*.* or etc: purple
 
-## Operate on selected lines
-- for every filespec in selection, make these commands available
-  - openFile
-  - closeFile
-  - gotoFile - open the files and offer a picker for which file to activate
-  - checkCheckbox - picker to choose whether to use X or x
-  - uncheckCheckbox
-  - removeCheckboxes
-  - addCheckboxes - picker to choose: unchecked, X or x
-  - make some of those above into commands as neccessary
+## [x] Operate on selected lines
+- [x] for every filespec in selection, make these commands available
+  - [x] openFile
+  - [x] closeFile
+  - [x] gotoFile - open the files and offer a picker for which file to activate
+  - [x] checkCheckbox - picker to choose whether to use X or x
+  - [x] uncheckCheckbox
+  - [x] removeCheckboxes
+  - [x] addCheckboxes - picker to choose: unchecked, X or x
+  - [x] make some of those above into commands as neccessary
 
-## Implement these and update the UPPERCASE.md files
+## [x] Implement these and update the UPPERCASE.md files
 
 
 ## Need two context when flags

@@ -79,6 +79,38 @@ Every navigational action is engineered to prevent context-switching:
 ### 🔍 Search Jumps (`idx.jumpAny` & `idx.jumpWithin`)
 - Search your active workspace or index lines with responsive, fuzzy text match QuickPicks. It features real-time backgrounds preview, checklists status counters, and occurrence markers.
 
+---
+
+## 🌈 5. Syntax Highlighting, Bulk Selection Actions & More
+
+To elevate the visual experience and streamline bulk refactoring, IDX implements semantic filespec coloring, range-based selection actions, and custom environment management tools:
+
+### 🎨 Semantic Filespec Coloring
+Each type of filespec has designated color highlighting so you can instantly recognize the scope of lines:
+- **fullpath**: Pure white (`#ffffff`) for explicit paths.
+- **relativepath**: Light grey (`#d1d5db`) for project-bounded paths.
+- **filenameonly**: Bold red (`#ef4444`) for floating files that require careful context resolution.
+- **parentdependent**: Soft cyan (`#06b6d4`) for entries relying on active folders.
+- **directoryunspecified**: Orange (`#f97316`) for ambiguous entries without folders.
+- **folder**: Vivid yellow (`#eab308`) highlighting directory entries.
+- **wildcard**: Purple (`#a855f7`) for pattern matched elements (e.g. `*.ts`, `*.*`).
+
+### 📦 Multi-line Bulk Operations
+When holding standard cursor ranges (selecting multiple lines), IDX activates selection-aware actions:
+- **Open Selected Files (No Focus)** (`idx.openSelectedFiles`): Opens all highlighted files without shifting focus.
+- **Close Selected Files** (`idx.closeSelectedFiles`): Closes editor tabs corresponding to selected paths.
+- **Go to Selected File/Folder** (`idx.gotoSelectedFile`): Opens the clicked/active files in your selection.
+- **Mark Selected Lines Completed** (`idx.checkSelectedCheckboxes`): Updates bulk checklists to active state (`x` or `X`).
+- **Mark Selected Lines Incomplete** (`idx.uncheckSelectedCheckboxes`): Unchecks all matching checklists.
+- **Remove Selection Checkboxes** (`idx.removeSelectedCheckboxes`): Removes checkbox brackets on selected lines.
+- **Add Checkboxes to Selection** (`idx.addSelectedCheckboxes`): Appends checkboxes to selected targets.
+
+### ⚙️ User Utilities
+- **Set User Keybindings (`idx.setKeybindings`)**: Interactive QuickPick allowing users to write extension shortcuts directly into their global User `keybindings.json` (supports standard VS Code, Insiders, VSCodium, Code-OSS, and Cursor).
+- **Collect Editors (`idx.collectEditors`)**: Stitches together scattered files into organized layout groups.
+- **Close All Markdown Editors (`idx.closeAllMarkdownEditors`)**: Closes all loose markdown tabs while preserving the principal explorer `idx.md`.
+- **Close All Markdown Editors In Group (`idx.closeAllMarkdownEditorsInGroup`)**: Targeted cleanup of groups containing md documentation.
+
 Back to [README](README.md)
 Next  [SPEC](SPEC.md)
 Next  [MANUAL](MANUAL.md)

@@ -2,6 +2,8 @@
 ./.vscode/settings.json
 - [X] ./text.txt
 ./text2.txt
+text2.txt
+C:\_\__\idx\test-fixture\text2.txt
 
 - [X] ./text2.txt
 

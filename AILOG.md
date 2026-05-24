@@ -2,6 +2,46 @@
 <!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
 
+## [2026-05-24T21:33:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Support both VS Code and Cursor editors when resolving the global User profile directory path.
+- Fully document newly implemented features, range-based actions, filespec colors, and keybinding mechanisms in all uppercase instruction and guides files (`SUMMARY.md`/`MANUAL.md`/`SPEC.md`/`FEATURES.md`/`README.md`/`TESTING.md`).
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Cursor Integration in `src/extension.ts`**:
+  - Leveraged case-insensitive check of `appName` to locate Cursor's native User configurations path folder on all operating systems (Windows, macOS, and Linux).
+- **Comprehensive Documentation Updates**:
+  - Updated all major markdown files including `SPEC.md`, `FEATURES.md`, `MANUAL.md`, `README.md`, and `TESTING.md` using clean dashes as list bullets to log the expanded list of navigation commands, range actions, and layout tweaks.
+
+---
+
+### 🚀 Recommended Next Steps
+- Open standard extension in Cursor to test profile-level User keybindings resolution dynamically.
+
+## [2026-05-24T21:25:00Z]
+
+### 🎯 Primary Goals & Requirements
+Configure standard keyboard shortcuts dynamically inside the global VS Code User configuration folder's `keybindings.json` instead of local workspace files. Change the gutter indicators to use the actual `glyphMargin` (via `glyphMarginIconPath` and `glyphMarginIconSize`), and automatically set `editor.glyphMargin` to true. Mark all the tasks in `AITASKS.md` as completed.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **`src/extension.ts` Refactoring**:
+  - Automatically resolved the global user directory on Windows, macOS, and Linux supporting standard VS Code, Insiders, VSCodium, and Code-OSS.
+  - Implemented a robust `parseJSONSafely` function that strips comments and trailing commas to read/write global user configuration files safely.
+  - Correctly updated `setKeybindingsCommand` to fetch and parse the global User `keybindings.json` and cleanly write selected keybindings, preserving the user's other custom keybindings.
+  - Retimed and cast the gutter decorations to use the standard `glyphMarginIconPath` and `glyphMarginIconSize` to enable real glyph margin indicators.
+- **Build Verification**: Verified type safety of all modifications using `tsc --noEmit` and confirmed they transpile perfectly.
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify global user keybindings sync inside VS Code.
+- Confirm glyph margin markers display on modern themes with a light or dark visual backdrop.
+
 ## [2026-05-24T18:59:00Z]
 
 ### 🎯 Primary Goals & Requirements
