@@ -2,6 +2,27 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+//#region _interfaces
+// Representation of a fileline parsed from idx.md
+interface FileLine {
+	lineIndex: number;
+	lineText: string;
+	indentation: number;
+	heading: string;         // closest parent heading name
+	filepath: string;        // visual token extracted, e.g., 'src/extension.ts'
+	resolvedPath: string;    // absolute file system path
+	exists: boolean;
+	isFolder: boolean;
+	prefix: string;          // prefix before the path, excluding checkbox
+	suffix: string;          // suffix after the path
+	checkbox?: {
+		checked: boolean;
+		range: vscode.Range;
+	};
+}
+//#endregion _interfaces
+
+//#region _cache
 // Global in-memory cache of file existences and directory status to prevent disk I/O overhead on keypresses
 const fileStatsCache = new Map<string, { exists: boolean; isFolder: boolean }>();
 
@@ -24,7 +45,9 @@ function getCachedFileStats(resolvedPath: string): { exists: boolean; isFolder: 
 	}
 	return cached;
 }
+//#endregion _cache
 
+//#region _utils
 // Check if a path matches the excluded patterns from setting
 function isPathExcluded(filePath: string, workspaceRoot: string): boolean {
 	const config = vscode.workspace.getConfiguration("idx");
@@ -48,24 +71,6 @@ function getExcludeGlob(): string {
 	return `{${excludes.join(',')}}`;
 }
 
-// Representation of a fileline parsed from idx.md
-interface FileLine {
-	lineIndex: number;
-	lineText: string;
-	indentation: number;
-	heading: string;         // closest parent heading name
-	filepath: string;        // visual token extracted, e.g., 'src/extension.ts'
-	resolvedPath: string;    // absolute file system path
-	exists: boolean;
-	isFolder: boolean;
-	prefix: string;          // prefix before the path, excluding checkbox
-	suffix: string;          // suffix after the path
-	checkbox?: {
-		checked: boolean;
-		range: vscode.Range;
-	};
-}
-
 // Utility to count indentation spaces (treating tabs as 4 spaces)
 function getIndentation(line: string): number {
 	const match = line.match(/^([ \t]*)/);
@@ -80,7 +85,9 @@ function getIndentation(line: string): number {
 	}
 	return indent;
 }
+//#endregion _utils
 
+//#region _idx
 // Robust recursive file explorer parser
 function parseIdxMarkdown(documentText: string, workspaceRoot: string, openFilePaths: Set<string>): FileLine[] {
 	const lines = documentText.split(/\r?\n/);
@@ -305,7 +312,9 @@ function parseIdxMarkdown(documentText: string, workspaceRoot: string, openFileP
 
 	return fileLines;
 }
+//#endregion _idx
 
+//#region _gutter
 // Gutter decoration manager
 class GutterDecorationManager {
 	private blueDecorationType: vscode.TextEditorDecorationType;
@@ -417,7 +426,9 @@ function updateAllVisibleDecorations(manager: GutterDecorationManager) {
 		manager.triggerUpdate(editor, workspaceRoot);
 	}
 }
+//#endregion _gutter
 
+//#region _pickers
 // Building nice picklist items with checkboxes details and frequencies
 function buildPickerItem(fPath: string, isOpen: boolean, fileLines: FileLine[], workspaceRoot: string): vscode.QuickPickItem & { resolvedPath: string } {
 	const filename = path.basename(fPath);
@@ -629,7 +640,9 @@ async function showIdxLinePicker(idxDocument: vscode.TextDocument) {
 	quickPick.onDidHide(() => quickPick.dispose());
 	quickPick.show();
 }
+//#endregion _pickers
 
+//#region _settings
 // Retrieve index Uri resolver helper
 async function getIndexUri(): Promise<vscode.Uri | undefined> {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -642,11 +655,9 @@ async function getIndexUri(): Promise<vscode.Uri | undefined> {
 	const idxFilename = config.get<string>("indexFilename", "idx.md");
 	return vscode.Uri.file(path.join(workspaceRoot, idxFilename));
 }
+//#endregion _settings
 
-// ----------------------------------------------------
-// Core Command Execution Handlers
-// ----------------------------------------------------
-
+//#region _commands
 async function openIdxCommand() {
 	const idxUri = await getIndexUri();
 	if (!idxUri) return;
@@ -1172,7 +1183,9 @@ async function createMissingCommand(lineIndex?: number) {
 		vscode.window.showErrorMessage(`Failed to create item: ${err.message}`);
 	}
 }
+//#endregion _commands
 
+//#region _code_actions
 class IdxCodeActionProvider implements vscode.CodeActionProvider {
 	public provideCodeActions(
 		document: vscode.TextDocument,
@@ -1223,14 +1236,10 @@ class IdxCodeActionProvider implements vscode.CodeActionProvider {
 		return actions;
 	}
 }
+//#endregion _code_actions
 
-// ----------------------------------------------------
-// Activation Entrypoint
-// ----------------------------------------------------
-
-export function activate(context: vscode.ExtensionContext) {
-	const manager = new GutterDecorationManager();
-
+//#region _setups
+function watchSetup(context, manager){
 	// Invalidate cached stats when file system modifications occur
 	const watcher = vscode.workspace.createFileSystemWatcher('**/*');
 	const handleFsChange = (uri: vscode.Uri) => {
@@ -1265,29 +1274,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const interval = setInterval(() => {
 		updateAllVisibleDecorations(manager);
 	}, 5000);
+}
 
-	context.subscriptions.push({
-		dispose() {
-			clearInterval(interval);
-			manager.dispose();
-		}
-	});
-
-	// Perform initial gutter paint
-	updateAllVisibleDecorations(manager);
-
-	// Code Action registrations
-	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider(
-			{ scheme: 'file', language: 'markdown' },
-			new IdxCodeActionProvider(),
-			{
-				providedCodeActionKinds: [vscode.CodeActionKind.RefactorRewrite, vscode.CodeActionKind.QuickFix]
-			}
-		)
-	);
-
-	// Command registries
+function commandsSetup(context) {
 	context.subscriptions.push(vscode.commands.registerCommand('idx.openIdx', async () => {
 		await openIdxCommand();
 	}));
@@ -1363,5 +1352,35 @@ export function activate(context: vscode.ExtensionContext) {
 		await createMissingCommand(lineIndex);
 	}));
 }
+//#endregion _setups
+
+//#region _activate
+export function activate(context: vscode.ExtensionContext) {
+	const manager = new GutterDecorationManager();
+	watchSetup(context, manager);
+
+	context.subscriptions.push({
+		dispose() {
+			clearInterval(interval);
+			manager.dispose();
+		}
+	});
+
+	// Perform initial gutter paint
+	updateAllVisibleDecorations(manager);
+
+	// Code Action registrations
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider(
+			{ scheme: 'file', language: 'markdown' },
+			new IdxCodeActionProvider(),
+			{
+				providedCodeActionKinds: [vscode.CodeActionKind.RefactorRewrite, vscode.CodeActionKind.QuickFix]
+			}
+		)
+	);
+	commandsSetup(context);
+}
 
 export function deactivate() { }
+//#endregion _activate

@@ -7,7 +7,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"${workspaceFolder}/test-fixtures",
+				"${workspaceFolder}/test-fixture",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"cwd": "${workspaceFolder}",
