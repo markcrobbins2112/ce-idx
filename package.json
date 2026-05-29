@@ -31,7 +31,8 @@
 		"package": "vsce package",
 		"install-vsix": "powershell -Command \"Get-Item *.vsix | Select-Object -First 1 | Foreach-Object { code --install-extension $_.FullName }\"",
 		"lint": "bun build.js && node --check dist/extension.cjs",
-		"unzip:latest": "bun unzip-latest.js zip"
+		"unzip:latest": "bun unzip-latest.js zip",
+		"toggle-host": "autoit3.exe \"C:\\Users\\markc\\AppData\\Roaming\\Cursor\\User\\scripts\\toggle-extension-development.host.au3\""
 	},
 	"dependencies": {},
 	"devDependencies": {
