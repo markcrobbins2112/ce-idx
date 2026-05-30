@@ -780,7 +780,8 @@ class GutterDecorationManager {
 				contentIconPath: blankUri,
 				margin: '0 8px 0 0',
 				width: '12px',
-				height: '12px'
+				height: '12px',
+				contentText: '\u200b'
 			}
 		} as any);
 
@@ -1847,7 +1848,15 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 					vscode.window.showErrorMessage(`Could not open file: ${targetFileLine.resolvedPath}`);
 				}
 			} else {
-				await handleMissingFileCreation(targetFileLine, workspaceRoot);
+				const choice = await vscode.window.showQuickPick([
+					{ label: `$(file-add) Create "${targetFileLine.filepath}"`, create: true },
+					{ label: "$(close) Cancel", create: false }
+				], {
+					placeHolder: `File "${targetFileLine.filepath}" does not exist. Do you want to create it?`
+				});
+				if (choice && choice.create) {
+					await handleMissingFileCreation(targetFileLine, workspaceRoot);
+				}
 			}
 		}
 		return;
@@ -1907,16 +1916,44 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 		return;
 	}
 
-	const openedDocs: vscode.TextDocument[] = [];
-	for (const p of pathsToOpen) {
-		try {
-			const doc = await vscode.workspace.openTextDocument(p);
-			await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-			openedDocs.push(doc);
-		} catch (e) {}
-	}
+	if (preserveFocus) {
+		const qpItems = Array.from(pathsToOpen).map(p => {
+			const isOpen = openFilePaths.has(p);
+			const rel = path.relative(workspaceRoot, p).replace(/\\/g, '/');
+			return {
+				label: path.basename(p),
+				description: (isOpen ? "$(circle-filled) [Open] " : "$(circle-outline) [Closed] ") + rel,
+				resolvedPath: p,
+				picked: true
+			};
+		});
 
-	if (!preserveFocus) {
+		const selectedToOpen = await vscode.window.showQuickPick(qpItems, {
+			placeHolder: "Select files to open from selection:",
+			canPickMany: true
+		});
+
+		if (selectedToOpen && selectedToOpen.length > 0) {
+			const openedDocs: vscode.TextDocument[] = [];
+			for (const item of selectedToOpen) {
+				try {
+					const doc = await vscode.workspace.openTextDocument(item.resolvedPath);
+					await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
+					openedDocs.push(doc);
+				} catch (e) {}
+			}
+			vscode.window.showInformationMessage(`Opened ${openedDocs.length} file(s) from selection.`);
+		}
+	} else {
+		const openedDocs: vscode.TextDocument[] = [];
+		for (const p of pathsToOpen) {
+			try {
+				const doc = await vscode.workspace.openTextDocument(p);
+				await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
+				openedDocs.push(doc);
+			} catch (e) {}
+		}
+
 		const currentOpen = new Set<string>();
 		for (const group of vscode.window.tabGroups.all) {
 			for (const tab of group.tabs) {
@@ -1953,8 +1990,6 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 				await vscode.window.showTextDocument(doc, { preserveFocus: false, preview: false });
 			} catch (e) {}
 		}
-	} else {
-		vscode.window.showInformationMessage(`Opened ${openedDocs.length} file(s) from selection.`);
 	}
 }
 
@@ -2610,9 +2645,9 @@ async function createMissingCommand(lineIndex?: number) {
 const defaultKeybindings = [
 	{ "command": "idx.openIdx", "key": "` i", "when": "!idxFileActive" },
 	{ "command": "idx.update", "key": "f5", "when": "idxFileActive" },
-	{ "command": "idx.gotoFile", "key": "f2", "when": "idxCursorOnFileLine" },
-	{ "command": "idx.openFile", "key": "alt+f2", "when": "idxCursorOnFileLine" },
-	{ "command": "idx.closeFile", "key": "f4", "when": "idxCursorOnFileLine" },
+	{ "command": "idx.gotoFile", "key": "f2", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
+	{ "command": "idx.openFile", "key": "alt+f2", "when": "idxFileActive && editorHasSelection" },
+	{ "command": "idx.closeFile", "key": "f4", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
 	{ "command": "idx.returnToIdx", "key": "` backspace", "when": "!idxFileActive" },
 	{ "command": "idx.returnToIdxPicker", "key": "` ctrl+backspace", "when": "!idxFileActive" },
 	{ "command": "idx.jumpAny", "key": "alt+` i", "when": "idxFileActive" },

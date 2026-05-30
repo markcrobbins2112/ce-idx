@@ -31,7 +31,7 @@
 		"package": "vsce package",
 		"install-vsix": "powershell -Command \"Get-Item *.vsix | Select-Object -First 1 | Foreach-Object { code --install-extension $_.FullName }\"",
 		"lint": "bun build.js && node --check dist/extension.cjs",
-		"unzip:latest": "bun unzip-latest.js zip",
+		"unzip:latest": "bun unzip-latest.js zip.zip",
 		"toggle-host": "autoit3.exe \"C:\\Users\\markc\\AppData\\Roaming\\Cursor\\User\\scripts\\toggle-extension-development.host.au3\""
 	},
 	"dependencies": {},
@@ -197,17 +197,17 @@
 			{
 				"command": "idx.gotoFile",
 				"key": "f2",
-				"when": "idxCursorOnFileLine"
+				"when": "idxCursorOnFileLine || idxFileActive && editorHasSelection"
 			},
 			{
 				"command": "idx.openFile",
 				"key": "alt+f2",
-				"when": "idxCursorOnFileLine"
+				"when": "idxFileActive && editorHasSelection"
 			},
 			{
 				"command": "idx.closeFile",
 				"key": "f4",
-				"when": "idxCursorOnFileLine"
+				"when": "idxCursorOnFileLine || idxFileActive && editorHasSelection"
 			},
 			{
 				"command": "idx.returnToIdx",

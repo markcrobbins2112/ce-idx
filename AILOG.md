@@ -4,8 +4,77 @@
 
 ## Commit Message
 ```text
-feat: enable search by description and detail fields in user keybindings QuickPick
+feat: support gotoFile creation pickers, blank :before on empty lines, and openFile selection multi-pickers
 ```
+
+## [2026-05-30T11:12:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Support prompting with a QuickPick picker to create non-existent files on `idx.gotoFile` and `idx.openFile`.
+- Fix `:before` blank decorations not displaying on lines with no characters, ensuring consistent gutter alignment.
+- Implement selection-aware `when` context rules for `idx.openFile` (`idxFileActive && editorHasSelection`) and adjust `idx.gotoFile` and `idx.closeFile` contexts.
+- Provide a multi-picker for selected/matched open/closed files on `idx.openFile` multi-line selections prior to opening.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Prompting for Non-existent File Creation**:
+  - Replaced immediate creation in single-file resolution flow (`resolveFilelineUnderCursor`) with a QuickPick prompt asking if the user wants to create the non-existent file.
+- **Rendering blank :before decorations on empty lines**:
+  - Appended `contentText: '\u200b'` rule to `blankDecorationType`'s before pseudo-element options to force VS Code to display the width/margin space on empty lines.
+- **Context bindings and multi-picker for openFile selection**:
+  - Configured keybindings when contexts for `idx.gotoFile`, `idx.openFile`, and `idx.closeFile` in `package.json` and standard rules.
+  - Implemented multi-select QuickPick in broad/multiple selections to filter open/closed matches for `openFile` commands.
+- **Modified files**:
+  - `/package.json`
+  - `/src/extension.ts`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify the updated keybindings and context rules in the extension host.
+
+## [2026-05-30T10:37:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Rename the exported ZIP file produced by the studio download functionality to `zip.zip`.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Rename application in metadata**:
+  - Modified `"name"` field in `/metadata.json` to `"zip"` to ensure the platform packages exported downloads with the file name `zip.zip`.
+- **Modified files**:
+  - `/metadata.json`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Open the settings or export menu in AI Studio and download/export the project to verify that the file is correctly packaged as `zip.zip`.
+
+## [2026-05-30T10:35:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Update the download target representation name parameter to `zip.zip`.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Configured Download Target filename**:
+  - Remapped `"unzip:latest"` script target parameter in `/package.json` to evaluate `zip.zip`.
+- **Modified files**:
+  - `/package.json`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify execution of scripts using standard tools inside the sandbox.
 
 ## [2026-05-30T10:27:00Z]
 

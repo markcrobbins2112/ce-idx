@@ -6,12 +6,16 @@
 ## [ ] Implement these and update the UPPERCASE.md files (Never check this item, just do it)
 
 ## Incoming tasks from chat
-- [x] Fix the keybindings picker to allow search on detail and description
+- [X] Fix the keybindings picker to allow search on detail and description
 
 ## New Tasks
-### [ ] NEW: Goto file on non-existent file
-- [ ] should offer picker to ask if want create
+### [X] NEW: Goto file on non-existent file
+- [X] should offer picker to ask if want create
 
+### [ ] Change Copy Keybindings to Clipboard
+- make it Copy Commands, same format
+
+### [ ] idx.checkSelectedCheckboxes does not show up in Copy Keybindings
 
 ## New Commands
 ### [X] Set User Keybindings
@@ -144,23 +148,21 @@
 - [X] put a list here of commands that are multi cursor
 - [X] put a list here of commands that are not multi cursor
 
-## [ ] NEW: change idx.openFile
-- when from idxCursorOnFileLine to idxFileActive
-- add to that when - {has selection}
-- adjust other commands that work off selection
-  - idxCursorOnFileLine may not be true, see selections
+## [X] NEW: change idx.openFile
+- [X] when from idxCursorOnFileLine to idxFileActive
+- [X] add to that when - {has selection}
+- [X] adjust other commands that work off selection
+  - [X] idxCursorOnFileLine may not be true, see selections
 
-## [ ] Operate on selected lines
-- [ ] for every filespec in selection, make these commands available
-  - [ ] FAIL: openFile
-    - [ ] NEW: should provide multi-picker of open/not open files that match
-    - [ ] observed only opening the files withing selection then offering a picker
-  - [x] FAIL: closeFile
-    - [x] should ensure all the files in the selected filespecs are closed
-    - [x] observed only closing the file where the cursor was at
-  - [x] FAIL: gotoFile - open the files and offer a picker for which file to activate
-    - [x] should offer a picker with open files at the top
-    - [x] observed only opening the file where the cursor was at
+## [X] Operate on selected lines
+- [X] for every filespec in selection, make these commands available
+  - [X] OK: openFile
+    - [X] NEW: should provide multi-picker of open/not open files that match
+    - [X] observed only opening the files withing selection then offering a picker
+  - [X] OK: closeFile
+    - [X] should ensure all the files in the selected filespecs are closed
+  - [ ] FAIL: gotoFile - offer a picker for which file to open and activate
+    - [ ] should offer a picker with open files at the top
   - [x] checkCheckbox - picker to choose whether to use X or x
   - [x] uncheckCheckbox
   - [x] removeCheckboxes
