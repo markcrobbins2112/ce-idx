@@ -9,6 +9,8 @@
 
 ## Markdown
 - Use dashes instead of asterisks for bullet items
+- AGENTS: never ever change an [X], never use an [X] always use lowercase [x]
+- Always update UPPERCASE.md files (such as AITASKS.md, AILOG.md, etc.) when tasks are completed or work is performed
 
 ## File Restrictions
 - Do not create new files, only work on the uploaded files.

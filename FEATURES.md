@@ -109,7 +109,42 @@ When holding standard cursor ranges (selecting multiple lines), IDX activates se
 - **Set User Keybindings (`idx.setKeybindings`)**: Interactive QuickPick allowing users to write extension shortcuts directly into their global User `keybindings.json` (supports standard VS Code, Insiders, VSCodium, Code-OSS, and Cursor).
 - **Collect Editors (`idx.collectEditors`)**: Stitches together scattered files into organized layout groups.
 - **Close All Markdown Editors (`idx.closeAllMarkdownEditors`)**: Closes all loose markdown tabs while preserving the principal explorer `idx.md`.
-- **Close All Markdown Editors In Group (`idx.closeAllMarkdownEditorsInGroup`)**: Targeted cleanup of groups containing md documentation.
+
+---
+
+## 📋 6. Complete Commands Directory
+
+Below is the exhaustive catalog of every command registered by the IDX extension. These can be triggered via the VS Code Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`), custom key bindings, or contextual menus:
+
+| Command ID | Implemented Name & Action | Context Active | Intended Keys |
+| :--- | :--- | :--- | :--- |
+| **`idx.openIdx`** | Open Index | `!idxFileActive` | `` `i `` |
+| **`idx.update`**| Update Index Workspace | `idxFileActive` | `F5` |
+| **`idx.gotoFile`** | Goto File / Directory Picker | `idxCursorOnFileLine` | `F2` |
+| **`idx.openFile`** | Open File in Background | `idxCursorOnFileLine` | `Alt+F2` |
+| **`idx.closeFile`** | Close File Editor | `idxCursorOnFileLine` | `F4` |
+| **`idx.returnToIdx`** | Return to Index Location | `!idxFileActive` | `` ` backspace `` |
+| **`idx.returnToIdxPicker`** | Return Match Picker | `!idxFileActive` | `` ` ctrl+backspace `` or `` `i `` |
+| **`idx.jumpAny`** | Fuzzy Search Jump | `idxFileActive` | `alt+` i` |
+| **`idx.jumpWithin`** | Local Search Jump | `idxFileActive` | `alt+` alt+i` |
+| **`idx.copyProjectUnlisted`** | Copy Project Unlisted Paths | None / Menu | `alt+i ctrl+insert` |
+| **`idx.copyProjectUnlistedPicker`** | Pick and Copy Unlisted Paths | None / Menu | `alt+i alt+insert` |
+| **`idx.toggleCheckbox`** | Toggle/Cycle Checkbox | `idxFileActive` | `insert x` |
+| **`idx.checkboxer`** | Multi-Checkbox Cycler | Always | `ctrl+alt+f10` |
+| **`idx.createMissing`** | Auto-Genesis Missing Items | `idxCursorOnFileLine` | None / Action |
+| **`idx.setKeybindings`** | Write User Keybindings | Always | None / Palette |
+| **`idx.collectEditors`** | Group Leftover Editors | Always | `ctrl+` f11` |
+| **`idx.closeAllMarkdownEditors`** | Tidy Markdown Editors | Always | `ctrl+` f4` |
+| **`idx.copyKeybindings`** | Copy Shortcuts to Clipboard | Always | None / Palette |
+| **`idx.openSelectedFiles`** | Open Selected Matches | Multiple Selection | None / Menu |
+| **`idx.closeSelectedFiles`** | Close Selected Matches | Multiple Selection | None / Menu |
+| **`idx.gotoSelectedFile`** | Open Active Selection | Multiple Selection | None / Menu |
+| **`idx.checkSelectedCheckboxes`** | Check Selected Bullets | Multiple Selection | None / Menu |
+| **`idx.uncheckSelectedCheckboxes`** | Uncheck Selected Bullets | Multiple Selection | None / Menu |
+| **`idx.removeSelectedCheckboxes`** | Strip Selection Checkboxes | Multiple Selection | None / Menu |
+| **`idx.addSelectedCheckboxes`** | Add Checkboxes to Selection | Multiple Selection | None / Menu |
+
+---
 
 Back to [README](README.md)
 Next  [SPEC](SPEC.md)

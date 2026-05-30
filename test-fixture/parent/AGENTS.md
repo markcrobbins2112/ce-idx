@@ -9,6 +9,8 @@
 
 ## Markdown
 - Use dashes instead of asterisks for bullet items
+- When completing a task, always use a lowercase x (e.g., `[x]`) for checkbox lists. This applies ONLY to tasks completed in the active development session. Pre-existing tasks completed in previous sessions that are marked with uppercase `X` (e.g., `[X]`) must be preserved and NOT converted to lowercase `x` or otherwise altered.
+- Always update UPPERCASE.md files (such as AITASKS.md, AILOG.md, etc.) when tasks are completed or work is performed
 
 ## File Restrictions
 - Do not create new files, only work on the uploaded files.

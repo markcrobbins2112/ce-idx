@@ -211,12 +211,12 @@
 			},
 			{
 				"command": "idx.returnToIdx",
-				"key": "` r",
+				"key": "` backspace",
 				"when": "!idxFileActive"
 			},
 			{
 				"command": "idx.returnToIdxPicker",
-				"key": "` i",
+				"key": "` ctrl+backspace",
 				"when": "!idxFileActive"
 			},
 			{
