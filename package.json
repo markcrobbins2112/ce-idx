@@ -152,7 +152,7 @@
 			},
 			{
 				"command": "idx.copyKeybindings",
-				"title": "IDX: Copy Keybindings to Clipboard"
+				"title": "IDX: Copy Commands to Clipboard"
 			},
 			{
 				"command": "idx.openSelectedFiles",

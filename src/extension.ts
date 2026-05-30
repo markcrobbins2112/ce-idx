@@ -781,7 +781,7 @@ class GutterDecorationManager {
 				margin: '0 8px 0 0',
 				width: '12px',
 				height: '12px',
-				contentText: '\u200b'
+				contentText: '\u00a0'
 			}
 		} as any);
 
@@ -1054,7 +1054,7 @@ class CommandMetadataContainer {
 		"idx.collectEditors": "Collect Editors",
 		"idx.closeAllMarkdownEditors": "Close All Markdown Editors",
 		"idx.checkboxer": "Checkboxer Label Toggle",
-		"idx.copyKeybindings": "Copy Keybindings to Clipboard",
+		"idx.copyKeybindings": "Copy Commands to Clipboard",
 		"idx.openSelectedFiles": "Open Selected Files (No Focus)",
 		"idx.closeSelectedFiles": "Close Selected Files",
 		"idx.gotoSelectedFile": "Go to Selected File/Folder",
@@ -1945,15 +1945,6 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 			vscode.window.showInformationMessage(`Opened ${openedDocs.length} file(s) from selection.`);
 		}
 	} else {
-		const openedDocs: vscode.TextDocument[] = [];
-		for (const p of pathsToOpen) {
-			try {
-				const doc = await vscode.workspace.openTextDocument(p);
-				await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-				openedDocs.push(doc);
-			} catch (e) {}
-		}
-
 		const currentOpen = new Set<string>();
 		for (const group of vscode.window.tabGroups.all) {
 			for (const tab of group.tabs) {
@@ -1975,7 +1966,7 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 			const rel = path.relative(workspaceRoot, p).replace(/\\/g, '/');
 			return {
 				label: path.basename(p),
-				description: (isOpen ? "$(circle-filled) [Open] " : "") + rel,
+				description: (isOpen ? "$(circle-filled) [Open] " : "$(circle-outline) [Closed] ") + rel,
 				resolvedPath: p
 			};
 		});
@@ -2596,11 +2587,11 @@ async function checkboxerCommand() {
 async function copyKeybindingsCommand() {
 	const headers = ["Keys", "Command Name", "Command Description", "When"];
 	const Cmc_ = CommandMetadataContainer;
-	const rows = defaultKeybindings.map(kb => {
-		const key = kb.key || "(none)";
-		const cmd = kb.command;
-		const desc = Cmc_.descriptions[kb.command] || "";
-		const when = kb.when || "always";
+	const rows = Object.keys(Cmc_.descriptions).map(cmd => {
+		const kb = defaultKeybindings.find(k => k.command === cmd);
+		const key = kb ? (kb.key || "(none)") : "(none)";
+		const desc = Cmc_.descriptions[cmd] || "";
+		const when = kb ? (kb.when || "always") : "always";
 		return [key, cmd, desc, when];
 	});
 
@@ -2617,7 +2608,7 @@ async function copyKeybindingsCommand() {
 	const tableText = [headerRow, dividerRow, ...dataRows].join('\n');
 
 	await vscode.env.clipboard.writeText(tableText);
-	vscode.window.showInformationMessage("Copied IDX commands and keybindings list as a formatted table to clipboard.");
+	vscode.window.showInformationMessage("Copied IDX commands list as a formatted table to clipboard.");
 }
 
 async function createMissingCommand(lineIndex?: number) {

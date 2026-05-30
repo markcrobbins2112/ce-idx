@@ -4,8 +4,37 @@
 
 ## Commit Message
 ```text
-feat: support gotoFile creation pickers, blank :before on empty lines, and openFile selection multi-pickers
+feat: support copy commands list table export, non-eager select-to-activate gotoFile picker, and empty lines alignment space rendering
 ```
+
+## [2026-05-30T11:52:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Update the `idx.copyKeybindings` command behavior to copy all available commands in `CommandMetadataContainer.descriptions` to the clipboard.
+- Prevent eagerness for `idx.gotoFile` in Case 2 broad selection which was opening all files with `preserveFocus` before showing the selector.
+- Correct the rendering of blank decorations on lines without characters so empty lines visually align using a non-breaking space `\u00a0`.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Exporting Commands list instead of Keybindings**:
+  - Replayed the registry mapper in `copyKeybindingsCommand()` in `src/extension.ts` to iterate over all command entries in `CommandMetadataContainer.descriptions`. Missing keys are assigned to `"(none)"` and contexts default to `"always"`.
+  - Changed references from "copy keybindings" to "copy commands" in titles and user notification outputs.
+- **Improved gotoFile Multi-Selection Activation**:
+  - Excluded the pre-opening loop in Case 2 of `resolveFilelineUnderCursor(false)` (with `preserveFocus` false).
+  - Configured `[Closed]` indicator in description on the quick pick list to align with other options.
+- **Empty Line Blank Decoration alignment**:
+  - Substituted the Zero-Width Space `\u200b` within the `blankDecorationType`'s `:before` pseudo-element with a Non-Breaking Space `\u00a0`.
+- **Modified files**:
+  - `/package.json`
+  - `/src/extension.ts`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify visual alignment of empty lines in the index markdown editor.
 
 ## [2026-05-30T11:12:00Z]
 

@@ -9,28 +9,39 @@
 - [X] Fix the keybindings picker to allow search on detail and description
 
 ## New Tasks
-### [X] NEW: Goto file on non-existent file
+### [ ] NEW: checkbox commands should work on non bulleted boxes
+- like:{no chars}[ ]
+- like: - [ ]
+- like: # [ ]
+- like: ## [ ]
+- like: ### [ ]
+- like: #### [ ]
+- like: ##### [ ]
+- like: ###### [ ]
+
+### [X] Goto file on non-existent file
 - [X] should offer picker to ask if want create
 
-### [ ] Change Copy Keybindings to Clipboard
+### [X] Change Copy Keybindings to Clipboard
 - make it Copy Commands, same format
 
-### [ ] idx.checkSelectedCheckboxes does not show up in Copy Keybindings
+### [X] idx.checkSelectedCheckboxes does not show up in Copy Keybindings
 
 ## New Commands
 ### [X] Set User Keybindings
 - [X] MultiSelect Picklist that will Control Which extension keybindings are written to keybindings.json
   - [X] keybindings are written or removed dynamically according to the selection
 
-### [x] Collect Editors
+### [ ] Collect Editors
 - [X] when idx.md is active :UNDO
   - [X] when always
 - [X] key "ctrl+` f11"
 - [X] with open files
   - [X] multiSelect picker listing open editors
     - [X] with selected files, a new picker listing groups to move selected editors to, or new group
-      - [x] FAIL: editors were copied, not moved
-        - [x] still does copy
+      - [X] editors were copied, not moved
+	  - [ ] NEW: item for Active Group {number} at the top
+	  - [ ] NEW: focus should return to the original tab
 
 ### [X] Close all markdown editors
 - [X] when idx.md is active :UNDO
@@ -76,7 +87,7 @@
   	- [X] filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
 
 ## [X] listing to set keybindings
-- [X] NEW: format the commands
+- [X] format the commands
   - [X] separator: when [orderby when, then command name]
   - [X] label: [key]
   - [X] description: command description
@@ -148,26 +159,40 @@
 - [X] put a list here of commands that are multi cursor
 - [X] put a list here of commands that are not multi cursor
 
-## [X] NEW: change idx.openFile
+## [X] change idx.openFile
 - [X] when from idxCursorOnFileLine to idxFileActive
 - [X] add to that when - {has selection}
 - [X] adjust other commands that work off selection
   - [X] idxCursorOnFileLine may not be true, see selections
 
-## [X] Operate on selected lines
-- [X] for every filespec in selection, make these commands available
+## Rename Commands
+- [ ] Mark Selected Lines Incomplete => Mark Selected Lines with Checkboxes as Incomplete
+- [ ] Mark Selected Lines Complete => Mark Selected Lines with Checkboxes as Complete
+
+## [ ] Operate on selected lines
+- [ ] for every filespec in selection, make these commands available
   - [X] OK: openFile
-    - [X] NEW: should provide multi-picker of open/not open files that match
+    - [X] should provide multi-picker of open/not open files that match
+    	- [ ] NEW: picker should be multi select
     - [X] observed only opening the files withing selection then offering a picker
   - [X] OK: closeFile
     - [X] should ensure all the files in the selected filespecs are closed
-  - [ ] FAIL: gotoFile - offer a picker for which file to open and activate
-    - [ ] should offer a picker with open files at the top
-  - [x] checkCheckbox - picker to choose whether to use X or x
-  - [x] uncheckCheckbox
-  - [x] removeCheckboxes
-  - [x] addCheckboxes - picker to choose: unchecked, X or x
-  - [x] make some of those above into commands as neccessary
+  - [X]: gotoFile - offer a picker for which file to open and activate
+    - [X] should offer a picker with open files at the top
+  - [X] checkCheckbox - picker to choose whether to use X or x
+  - [X] uncheckCheckbox
+  - [ ] FAIL: removeCheckboxes
+    - [ ] when line is a header like
+      - '# [ ] ./text2.txt'
+      - then the unwanted result is
+      - '#./text2.txt'
+  - [X] addCheckboxes - picker to choose: unchecked, X or x
+  - [ ] FAIL: addCheckboxes - picker to choose: unchecked, X or x
+    - [ ] when line is a header like
+    - '# ./text2.txt'
+    - then the unwanted result is
+    - '- [ ] # ./text2.txt'
+  - [X] make some of those above into commands as neccessary
 
 ## [X] Need two context when flags
 - [X] idxFileActive
