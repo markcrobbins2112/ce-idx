@@ -5,6 +5,14 @@
 
 ## [ ] Implement these and update the UPPERCASE.md files (Never check this item, just do it)
 
+## Incoming tasks from chat
+- [x] Fix the keybindings picker to allow search on detail and description
+
+## New Tasks
+### [ ] NEW: Goto file on non-existent file
+- [ ] should offer picker to ask if want create
+
+
 ## New Commands
 ### [X] Set User Keybindings
 - [X] MultiSelect Picklist that will Control Which extension keybindings are written to keybindings.json
@@ -40,9 +48,11 @@
 ## [X] Use Glyph Margin instead of Gutter for icons [abort]
 - [X] change the visibilty of the Glyph Margin to true automatically
 
-## [x] NEW: Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
-- [x] FAIL: lines with no characters did not get a blank :before
-  - [x] try this again and don't lose the working icon functionality
+## [ ] FAIL: Lines with no characters did not get a blank :before
+- [ ] try this again and don't lose the working icon functionality
+
+## [X] OK: Lines in idx.md should have a :before icon,
+- if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
 
 ## [X] Line icon
 - [X] seems to get stuck on green, especially when launched from idx.md
@@ -55,26 +65,24 @@
   - [X] command description
   - [X] when
 
-## [x] Bad filespace detection
+## [X] Bad filespace detection
 - example
 	- '| ` i               | idx.openIdx                   | Open/Edit Index File                     | !idxFileActive      |'
 	- detection on Open/Edit
-  	- [x] filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
+  	- [X] filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
 
-## [x] listing to set keybindings
-- [x] NEW: format the commands
-  - [x] separator: when [orderby when, then command name]
-  - [x] label: [key]
-  - [x] description: command description
-  - [x] detail: command name
+## [X] listing to set keybindings
+- [X] NEW: format the commands
+  - [X] separator: when [orderby when, then command name]
+  - [X] label: [key]
+  - [X] description: command description
+  - [X] detail: command name
 
-## Change Bindings
+## [X] Change Bindings
 - [X] idx.returnToIdx: ` r (!idxFileActive)
   - [X] to "` backspace"
 - [X] idx.returnToIdxPicker: ` i (!idxFileActive)
   - [X] to "` ctrl+backspace"
-
-
 
 
 ## [x] ensure these keybindings are written by default
@@ -136,11 +144,17 @@
 - [X] put a list here of commands that are multi cursor
 - [X] put a list here of commands that are not multi cursor
 
-## [x] Operate on selected lines
-- [x] for every filespec in selection, make these commands available
-  - [x] FAIL: openFile
-    - [x] should ensure all the files in the selected filespecs are open
-    - [x] observed only opening the file where the cursor was at
+## [ ] NEW: change idx.openFile
+- when from idxCursorOnFileLine to idxFileActive
+- add to that when - {has selection}
+- adjust other commands that work off selection
+  - idxCursorOnFileLine may not be true, see selections
+
+## [ ] Operate on selected lines
+- [ ] for every filespec in selection, make these commands available
+  - [ ] FAIL: openFile
+    - [ ] NEW: should provide multi-picker of open/not open files that match
+    - [ ] observed only opening the files withing selection then offering a picker
   - [x] FAIL: closeFile
     - [x] should ensure all the files in the selected filespecs are closed
     - [x] observed only closing the file where the cursor was at

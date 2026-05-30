@@ -11,6 +11,9 @@
 - Use dashes instead of asterisks for bullet items
 - AGENTS: never ever change an [X], never use an [X] always use lowercase [x]
 - Always update UPPERCASE.md files (such as AITASKS.md, AILOG.md, etc.) when tasks are completed or work is performed
+- Put all task requests from the user on AITASKS.md first before working on them
+- If the user says 'do tasks', always state what you are going to do and then wait for the user's adjustments and approval before proceeding
+- AILOG: The top of AILOG.md should always feature a "Commit Message" section maintained by the AI, which must be cleared whenever the user says they have committed or appended the changes
 
 ## File Restrictions
 - Do not create new files, only work on the uploaded files.

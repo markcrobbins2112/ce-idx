@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Cursor Extension Developer",
+  "description": "Companion and preview app for developing Cursor extensions.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

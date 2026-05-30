@@ -66,8 +66,14 @@ ee
 ## Directory filespecs on files
 ## Colors for multi-matching filelines
 
-## Missing Files
-
 ## New Files
 - [ ] parent/AITASKS.md
 - [ ] parent/TESTING.md
+- [ ] parent/SPEC.md
+- [ ] parent/README.md
+- [ ] parent/MANUAL.md
+- [ ] parent/FEATURES.md
+- [ ] parent/extension.ts
+- [ ] parent/AILOG.md
+- [ ] parent/AGENTS.md
+- [ ] parent/.gitignore

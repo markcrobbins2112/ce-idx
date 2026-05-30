@@ -2,6 +2,31 @@
 <!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
 
+## Commit Message
+```text
+feat: enable search by description and detail fields in user keybindings QuickPick
+```
+
+## [2026-05-30T10:27:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Enable search by name (detail) and description within the extension's User Keybindings setup QuickPick list.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Enhanced Keybindings Multi-Select QuickPick Searchability**:
+  - Appended `matchOnDescription: true` and `matchOnDetail: true` properties to standard QuickPick options when constructing command selection prompts under `setKeybindingsCommand`.
+- **Modified files**:
+  - `/src/extension.ts`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify keybindings lookup using different command phrases or keystrokes inside VS Code.
+
 ## [2026-05-30T10:00:00Z]
 
 ### 🎯 Primary Goals & Requirements

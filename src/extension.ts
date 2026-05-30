@@ -2715,7 +2715,9 @@ async function setKeybindingsCommand() {
 
 	const selected = await vscode.window.showQuickPick(qpItems, {
 		placeHolder: "Select keybindings to write to global User keybindings.json:",
-		canPickMany: true
+		canPickMany: true,
+		matchOnDescription: true,
+		matchOnDetail: true
 	});
 
 	if (!selected) {
