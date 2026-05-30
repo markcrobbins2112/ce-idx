@@ -1,6 +1,9 @@
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD037 -->
+<!-- markdownlint-disable MD007 -->
 # AITASKS
+
+## [ ] Implement these and update the UPPERCASE.md files
 
 ## New Commands
 ### [X] Set User Keybindings
@@ -8,82 +11,150 @@
   - [X] keybindings are written or removed dynamically according to the selection
 
 ### [ ] Collect Editors
-- [ ] when idx.md is active :UNDO
-  - [ ] when always
+- [X] when idx.md is active :UNDO
+  - [X] when always
 - [X] key "ctrl+` f11"
 - [X] with open files
   - [X] multiSelect picker listing open editors
     - [X] with selected files, a new picker listing groups to move selected editors to, or new group
+      - [ ] FAIL: editors were copied, not moved
 
-### [ ] Close all markdown editors
-- [ ] when idx.md is active :UNDO
-  - [ ] when always
-- [ ] key "ctrl+` f4"
+### [X] Close all markdown editors
+- [X] when idx.md is active :UNDO
+  - [X] when always
+- [X] key "ctrl+` f4"
 - [X] do not close idx.md
-- [ ] offer a picker with items
-  - [ ] close all {count} [focused]
-  - [ ] close this group {count}
-  - [ ] close group {number} {count}
+- [X] offer a picker with items
+  - [X] close all {count} [focused]
+  - [X] close this group {count}
+  - [X] close group {number} {count}
 
-### [x] Close all markdown editors in group
-- [ ] Remove this feature
-- [x] when idx.md is active
-- [x] key "ctrl+` f4"
-- [x] picker to select group
-- [x] do not close idx.md
+### [X] Close all markdown editors in group
+- [X] Remove this feature
+- [X] when idx.md is active
+- [X] key "ctrl+` f4"
+- [X] picker to select group
+- [X] do not close idx.md
 
 ## [X] Use Glyph Margin instead of Gutter for icons [abort]
 - [X] change the visibilty of the Glyph Margin to true automatically
 
 ## [ ] Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
+- [ ] FAIL: lines with no characters did not get a blank :before
 
-## [ ] Line icon
-- seems to get stuck on green, especially when launched from idx.md
-  - make these update faster
+## [X] Line icon
+- [X] seems to get stuck on green, especially when launched from idx.md
+  - [X] make these update faster
 
-## [ ] Command to copy all commands and their assigned keys to clipboard with notification
+## [x] Command to copy all commands and their assigned keys to clipboard with notification
+- [ ] format the commands into columns
+  - [ ] keys
+  - [ ] command name
+  - [ ] command description
+  - [ ] when
 
-## [ ] Checkbox cycling
-- when: always
-- [ ] current (insert x) should cycle
-- [ ] [X] => [ ] => [x] =>[X]
+## [ ] listing to set keybindings
+- [ ] format the commands
+  - [ ] keys
+  - [ ] command name
+  - [ ] command description
+  - [ ] when
 
-## [ ] More Checkbox cycling
-- when: always
-- see ai/S-00035-checkboxer.md
-- assign this to key ctrl+alt+f10
+## Change Bindings
+- [ ] idx.returnToIdx: ` r (!idxFileActive)
+  - [ ] to "` backspace"
+- [ ] idx.returnToIdxPicker: ` i (!idxFileActive)
+  - [ ] to "` ctrl+backspace"
 
-## [x] Paint the filespec of a fileline
-- [x] for filespec types, color the text
-  - [x] fullpath: white
-  - [x] relativepath: light grey
-  - [x] filenameonly: red
-  - [x] parent dependent /filename or /filename.ext: cyan
-  - [x] directory unspecified filename.ext: orange
-  - [x] folder ./folder or fullpath/folder: yellow
-  - [x] wildcard: filenameonly.* or *.ext or /filename.* or or /file*.* or etc: purple
 
-## [x] Operate on selected lines
-- [x] for every filespec in selection, make these commands available
-  - [x] openFile
-  - [x] closeFile
-  - [x] gotoFile - open the files and offer a picker for which file to activate
+
+
+## [ ] ensure these keybindings are written by default
+- [ ] idx.gotoFile: f2 (idxCursorOnFileLine)
+- [ ] idx.openFile: alt+f2 (idxCursorOnFileLine)
+- [ ] idx.closeFile: f4 (idxCursorOnFileLine)
+- [ ] idx.returnToIdx: ` backspace (!idxFileActive)
+- [ ] idx.returnToIdxPicker: ` i (!idxFileActive)
+- [ ] idx.toggleCheckbox: insert x (always)
+- [ ] idx.checkboxer: ctrl+alt+f10 (always)
+
+
+
+
+## [ ] filspecs with wildcards
+- example
+	- ./t*.txt
+	- these specs can also appear as globs
+	- with files matching the spec
+    	- picker should provide a listing of open files as a group,
+    	- followed by existing files as a group
+    	- at the top of list should be an item 'close files' that will offer a multi-select picker
+    	- when that picker is done the previous picker should show with its state updated
+	- if there are files that are not created
+	- then an item at the top would say '{number} of uncreated files'
+  		- and choosing that would offer a multi-select picker to create and open selected files
+  		- when that picker is done the previous picker should appear with its state updated
+
+-
+## [X] Checkbox cycling
+- [X] when: always
+- [X] current (insert x) should cycle
+- [X] [X] => [ ] => [x] =>[X]
+
+## [X] More Checkbox cycling
+- [X] when: always
+- [X] see ai/S-00035-checkboxer.md
+- [X] assign this to key ctrl+alt+f10
+
+## [ ] Checkbox cyclers apply to selected text
+- [ ] if items selected are in different check states, they are synchronized
+- [ ] all items selected are cycled
+
+
+## [X] Paint the filespec of a fileline
+- [X] for filespec types, color the text
+  - [X] fullpath: white
+  - [X] relativepath: light grey
+  - [X] filenameonly: red
+  - [X] parent dependent /filename or /filename.ext: cyan
+  - [X] directory unspecified filename.ext: orange
+  - [X] folder ./folder or fullpath/folder: yellow
+  - [X] wildcard: filenameonly.* or *.ext or /filename.* or or /file*.* or etc: purple
+
+## [ ] selections
+	- [ ] if a selection is not including the full line then that line is not counted in the selection
+	- [ ] if a selection is including the remainder of aline then that line is counted in the selection
+	- [ ] if a selection is not present, assume the cursor line is the selection
+
+## [ ] multi cursor
+- [ ] make commands handle multi cursor
+- [ ] put a list here of commands that are multi cursor
+- [ ] put a list here of commands that are not multi cursor
+
+## [ ] Operate on selected lines
+- [ ] for every filespec in selection, make these commands available
+  - [ ] FAIL: openFile
+    - [ ] should ensure all the files in the selected filespecs are open
+    - [ ] observed only opening the file where the cursor was at
+  - [ ] FAIL: closeFile
+    - [ ] should ensure all the files in the selected filespecs are closed
+    - [ ] observed only closing the file where the cursor was at
+  - [ ] FAIL: gotoFile - open the files and offer a picker for which file to activate
+    - [ ] should offer a picker with open files at the top
+    - [ ] observed only opening the file where the cursor was at
   - [x] checkCheckbox - picker to choose whether to use X or x
   - [x] uncheckCheckbox
   - [x] removeCheckboxes
   - [x] addCheckboxes - picker to choose: unchecked, X or x
   - [x] make some of those above into commands as neccessary
 
-## [x] Implement these and update the UPPERCASE.md files
-
-
-## Need two context when flags
-- [x] idxFileActive
-- [x] idxCursorOnFileLine: idx File is active and current line has a filepath
+## [X] Need two context when flags
+- [X] idxFileActive
+- [X] idxCursorOnFileLine: idx File is active and current line has a filepath
 
 ## Need new commands
-- [x] idx.openFile: when - idxCursorOnFileLine - same as idx.gotoFile but no file activation
-- [x] idx.closeFile: when - idxCursorOnFileLine - close an open file
+- [X] idx.openFile: when - idxCursorOnFileLine - same as idx.gotoFile but no file activation
+- [X] idx.closeFile: when - idxCursorOnFileLine - close an open file
 
 ## When for commands
 - [x] idx.openIdx: when - !idxFileActive

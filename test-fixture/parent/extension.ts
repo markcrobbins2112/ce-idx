@@ -463,6 +463,7 @@ class GutterDecorationManager {
 	private greenDecorationType: vscode.TextEditorDecorationType;
 	private whiteSquareDecorationType: vscode.TextEditorDecorationType;
 	private greenSquareDecorationType: vscode.TextEditorDecorationType;
+	private blankDecorationType: vscode.TextEditorDecorationType;
 	private updateTimeout: NodeJS.Timeout | undefined;
 
 	private fullpathStyle: vscode.TextEditorDecorationType;
@@ -559,6 +560,21 @@ class GutterDecorationManager {
 			}
 		} as any);
 
+		const blankSvg = Buffer.from(
+			`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" />`
+		).toString('base64');
+
+		this.blankDecorationType = vscode.window.createTextEditorDecorationType({
+			glyphMarginIconPath: vscode.Uri.parse(`data:image/svg+xml;base64,${blankSvg}`),
+			glyphMarginIconSize: 'contain',
+			before: {
+				contentIconPath: vscode.Uri.parse(`data:image/svg+xml;base64,${blankSvg}`),
+				margin: '0 8px 0 0',
+				width: '12px',
+				height: '12px'
+			}
+		} as any);
+
 		// Filespec colors decoration types
 		this.fullpathStyle = vscode.window.createTextEditorDecorationType({ color: '#ffffff' });
 		this.relativepathStyle = vscode.window.createTextEditorDecorationType({ color: '#d1d5db' });
@@ -578,6 +594,13 @@ class GutterDecorationManager {
 		this.updateTimeout = setTimeout(() => this.update(editor, workspaceRoot), 300);
 	}
 
+	public updateInstantly(editor: vscode.TextEditor, workspaceRoot: string) {
+		if (this.updateTimeout) {
+			clearTimeout(this.updateTimeout);
+		}
+		this.update(editor, workspaceRoot);
+	}
+
 	private async update(editor: vscode.TextEditor, workspaceRoot: string) {
 		const document = editor.document;
 		const config = vscode.workspace.getConfiguration("idx");
@@ -589,6 +612,7 @@ class GutterDecorationManager {
 			editor.setDecorations(this.greenDecorationType, []);
 			editor.setDecorations(this.whiteSquareDecorationType, []);
 			editor.setDecorations(this.greenSquareDecorationType, []);
+			editor.setDecorations(this.blankDecorationType, []);
 			editor.setDecorations(this.fullpathStyle, []);
 			editor.setDecorations(this.relativepathStyle, []);
 			editor.setDecorations(this.filenameonlyStyle, []);
@@ -609,9 +633,6 @@ class GutterDecorationManager {
 				}
 			}
 		} catch (e) { }
-		for (const doc of vscode.workspace.textDocuments) {
-			openFilePaths.add(doc.uri.fsPath);
-		}
 
 		const fileLines = await parseIdxMarkdown(document.getText(), workspaceRoot, openFilePaths);
 
@@ -668,11 +689,20 @@ class GutterDecorationManager {
 			}
 		}
 
+		const fileLinesSet = new Set<number>(fileLines.map(fl => fl.lineIndex));
+		const blankRanges: vscode.Range[] = [];
+		for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
+			if (!fileLinesSet.has(lineIndex)) {
+				blankRanges.push(new vscode.Range(lineIndex, 0, lineIndex, 0));
+			}
+		}
+
 		editor.setDecorations(this.blueDecorationType, blueRanges);
 		editor.setDecorations(this.whiteDecorationType, whiteRanges);
 		editor.setDecorations(this.greenDecorationType, greenRanges);
 		editor.setDecorations(this.whiteSquareDecorationType, whiteSquareRanges);
 		editor.setDecorations(this.greenSquareDecorationType, greenSquareRanges);
+		editor.setDecorations(this.blankDecorationType, blankRanges);
 
 		editor.setDecorations(this.fullpathStyle, fullpathRanges);
 		editor.setDecorations(this.relativepathStyle, relativepathRanges);
@@ -689,6 +719,7 @@ class GutterDecorationManager {
 		this.greenDecorationType.dispose();
 		this.whiteSquareDecorationType.dispose();
 		this.greenSquareDecorationType.dispose();
+		this.blankDecorationType.dispose();
 
 		this.fullpathStyle.dispose();
 		this.relativepathStyle.dispose();
@@ -857,11 +888,25 @@ async function updateContexts() {
 //#region _gutter_helper
 function updateAllVisibleDecorations(manager: GutterDecorationManager) {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders) return;
+	if (!workspaceFolders) {
+		return;
+	}
 	const workspaceRoot = workspaceFolders[0].uri.fsPath;
 
 	for (const editor of vscode.window.visibleTextEditors) {
 		manager.triggerUpdate(editor, workspaceRoot);
+	}
+}
+
+function updateAllVisibleDecorationsInstantly(manager: GutterDecorationManager) {
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (!workspaceFolders) {
+		return;
+	}
+	const workspaceRoot = workspaceFolders[0].uri.fsPath;
+
+	for (const editor of vscode.window.visibleTextEditors) {
+		manager.updateInstantly(editor, workspaceRoot);
 	}
 }
 //#endregion _gutter_helper
@@ -919,9 +964,6 @@ async function showFolderPicklist(folderPath: string, idxDocument: vscode.TextDo
 			}
 		}
 	} catch (e) { }
-	for (const doc of vscode.workspace.textDocuments) {
-		openFilePaths.add(doc.uri.fsPath);
-	}
 
 	const fileLines = await parseIdxMarkdown(idxDocument.getText(), workspaceRoot, openFilePaths);
 
@@ -1729,7 +1771,9 @@ async function copyProjectUnlistedPickerCommand(document: vscode.TextDocument) {
 
 async function toggleCheckboxCommand() {
 	const editor = vscode.window.activeTextEditor;
-	if (!editor) return;
+	if (!editor) {
+		return;
+	}
 
 	const document = editor.document;
 	const cursorLine = editor.selection.active.line;
@@ -1743,9 +1787,19 @@ async function toggleCheckboxCommand() {
 
 	const checkboxChar = match[1];
 	const index = lineText.indexOf(`[${checkboxChar}]`);
-	if (index === -1) return;
+	if (index === -1) {
+		return;
+	}
 
-	const newChar = checkboxChar === ' ' ? 'x' : ' ';
+	let newChar = 'x';
+	if (checkboxChar === 'X') {
+		newChar = ' ';
+	} else if (checkboxChar === ' ') {
+		newChar = 'x';
+	} else if (checkboxChar === 'x') {
+		newChar = 'X';
+	}
+
 	const range = new vscode.Range(
 		new vscode.Position(cursorLine, index + 1),
 		new vscode.Position(cursorLine, index + 2)
@@ -1754,6 +1808,144 @@ async function toggleCheckboxCommand() {
 	const edit = new vscode.WorkspaceEdit();
 	edit.replace(document.uri, range, newChar);
 	await vscode.workspace.applyEdit(edit);
+}
+
+function getNextCheckboxerState(hasCheckbox: boolean, checkboxChar: string, label: string): { nextHasCheckbox: boolean; nextCheckboxChar: string; nextLabel: string } {
+	if (!hasCheckbox) {
+		return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: '' };
+	}
+
+	if (checkboxChar === ' ') {
+		if (label === '') {
+			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'NEW' };
+		}
+		if (label === 'NEW') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
+		}
+		if (label === 'FAIL') {
+			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FIX' };
+		}
+		if (label === 'FIX') {
+			return { nextHasCheckbox: false, nextCheckboxChar: '', nextLabel: '' };
+		}
+		return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
+	}
+
+	if (checkboxChar === 'X') {
+		if (label === '') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
+		}
+		if (label === 'OK') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'FIXED' };
+		}
+		if (label === 'FIXED') {
+			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
+		}
+		return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
+	}
+
+	if (checkboxChar === 'x') {
+		if (label === '') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
+		}
+		if (label === 'FAIL') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
+		}
+		if (label === 'FIX') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
+		}
+		if (label === 'NEW') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
+		}
+		if (label === 'OK') {
+			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'FIXED' };
+		}
+		if (label === 'FIXED') {
+			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
+		}
+		return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
+	}
+
+	return { nextHasCheckbox: false, nextCheckboxChar: '', nextLabel: '' };
+}
+
+async function checkboxerCommand() {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+
+	const document = editor.document;
+	const cursorLine = editor.selection.active.line;
+	const lineText = document.lineAt(cursorLine).text;
+
+	const bulletMatch = lineText.match(/^(\s*)([-*+]\s+)(.*)$/);
+	if (!bulletMatch) {
+		vscode.window.showInformationMessage("Current line is not a bulleted markdown line.");
+		return;
+	}
+
+	const indent = bulletMatch[1];
+	const bullet = bulletMatch[2];
+	const rest = bulletMatch[3];
+
+	let hasCheckbox = false;
+	let checkboxChar = "";
+	let label = "";
+	let coreText = rest;
+
+	const cbMatch = rest.match(/^\[([ xX])\]\s*/);
+	if (cbMatch) {
+		hasCheckbox = true;
+		checkboxChar = cbMatch[1];
+		const afterCb = rest.substring(cbMatch[0].length);
+		const labelMatch = afterCb.match(/^(NEW|OK|FIXED|FAIL|FIX):\s*/);
+		if (labelMatch) {
+			label = labelMatch[1];
+			coreText = afterCb.substring(labelMatch[0].length);
+		} else {
+			coreText = afterCb;
+		}
+	} else {
+		const labelMatch = rest.match(/^(NEW|OK|FIXED|FAIL|FIX):\s*/);
+		if (labelMatch) {
+			label = labelMatch[1];
+			coreText = rest.substring(labelMatch[0].length);
+		}
+	}
+
+	const nextState = getNextCheckboxerState(hasCheckbox, checkboxChar, label);
+
+	let replacement = coreText;
+	if (nextState.nextHasCheckbox) {
+		const cbStr = `[${nextState.nextCheckboxChar}] `;
+		if (nextState.nextLabel !== '') {
+			replacement = `${cbStr}${nextState.nextLabel}: ${coreText}`;
+		} else {
+			replacement = `${cbStr}${coreText}`;
+		}
+	} else {
+		if (nextState.nextLabel !== '') {
+			replacement = `${nextState.nextLabel}: ${coreText}`;
+		}
+	}
+
+	const finalLineText = `${indent}${bullet}${replacement}`;
+	const edit = new vscode.WorkspaceEdit();
+	const lineRange = new vscode.Range(
+		new vscode.Position(cursorLine, 0),
+		new vscode.Position(cursorLine, lineText.length)
+	);
+	edit.replace(document.uri, lineRange, finalLineText);
+	await vscode.workspace.applyEdit(edit);
+}
+
+async function copyKeybindingsCommand() {
+	const currentKeysHelp = defaultKeybindings.map(kb => {
+		return `- ${kb.command}: ${kb.key} (${kb.when || 'always'})`;
+	}).join('\n');
+	await vscode.env.clipboard.writeText(currentKeysHelp);
+	vscode.window.showInformationMessage("Copied IDX commands and keybindings list to clipboard.");
 }
 
 async function createMissingCommand(lineIndex?: number) {
@@ -1790,10 +1982,11 @@ const defaultKeybindings = [
 	{ "command": "idx.jumpWithin", "key": "alt+` alt+i", "when": "idxFileActive" },
 	{ "command": "idx.copyProjectUnlisted", "key": "alt+i ctrl+insert", "when": "idxFileActive" },
 	{ "command": "idx.copyProjectUnlistedPicker", "key": "alt+i alt+insert", "when": "idxFileActive" },
-	{ "command": "idx.toggleCheckbox", "key": "insert x", "when": "idxFileActive" },
-	{ "command": "idx.collectEditors", "key": "ctrl+` f11", "when": "idxFileActive" },
-	{ "command": "idx.closeAllMarkdownEditors", "key": "ctrl+` ctrl+f4", "when": "idxFileActive" },
-	{ "command": "idx.closeAllMarkdownEditorsInGroup", "key": "ctrl+` f4", "when": "idxFileActive" }
+	{ "command": "idx.toggleCheckbox", "key": "insert x" },
+	{ "command": "idx.collectEditors", "key": "ctrl+` f11" },
+	{ "command": "idx.closeAllMarkdownEditors", "key": "ctrl+` f4" },
+	{ "command": "idx.checkboxer", "key": "ctrl+alt+f10" },
+	{ "command": "idx.copyKeybindings", "key": "" }
 ];
 
 async function setKeybindingsCommand() {
@@ -1937,63 +2130,109 @@ async function collectEditorsCommand() {
 	vscode.window.showInformationMessage(`Moved ${selectedItems.length} editor(s) to selected group.`);
 }
 
+interface CloseQuickPickItem extends vscode.QuickPickItem {
+	action: 'all' | 'group';
+	group?: vscode.TabGroup;
+}
+
 async function closeAllMarkdownEditorsCommand() {
 	const config = vscode.workspace.getConfiguration("idx");
 	const idxFilename = config.get<string>("indexFilename", "idx.md");
 
-	let closedCount = 0;
-	for (const group of vscode.window.tabGroups.all) {
+	const tabGroups = vscode.window.tabGroups;
+	const activeGroup = tabGroups.activeTabGroup;
+
+	let totalMarkdownCount = 0;
+	const groupCounts = new Map<vscode.TabGroup, number>();
+
+	for (const group of tabGroups.all) {
+		let count = 0;
 		for (const tab of group.tabs) {
 			if (tab.input instanceof vscode.TabInputText) {
 				const fsPath = tab.input.uri.fsPath;
 				const basename = path.basename(fsPath);
 				if (basename !== idxFilename && (basename.endsWith('.md') || basename.endsWith('.markdown'))) {
-					await vscode.window.tabGroups.close(tab);
-					closedCount++;
+					count++;
 				}
 			}
 		}
+		groupCounts.set(group, count);
+		totalMarkdownCount += count;
 	}
-	vscode.window.showInformationMessage(`Closed ${closedCount} markdown editor(s).`);
-}
 
-async function closeAllMarkdownEditorsInGroupCommand() {
-	const config = vscode.workspace.getConfiguration("idx");
-	const idxFilename = config.get<string>("indexFilename", "idx.md");
-
-	const groups = vscode.window.tabGroups.all;
-	if (groups.length === 0) {
-		vscode.window.showInformationMessage("No active editor groups found.");
+	if (totalMarkdownCount === 0) {
+		vscode.window.showInformationMessage("No open markdown editors found.");
 		return;
 	}
 
-	const qpItems = groups.map((g, idx) => ({
-		label: `Group ${idx + 1}`,
-		description: `Active editor: ${g.activeTab ? g.activeTab.label : "None"}`,
-		groupIndex: idx,
-		group: g
-	}));
+	const qpItems: CloseQuickPickItem[] = [];
 
-	const selectedGroup = await vscode.window.showQuickPick(qpItems, {
-		placeHolder: "Select editor group to close markdown files in:"
+	qpItems.push({
+		label: `close all ${totalMarkdownCount}`,
+		description: "All groups",
+		action: 'all'
 	});
 
-	if (!selectedGroup) {
+	const activeGroupCount = groupCounts.get(activeGroup) || 0;
+
+	qpItems.push({
+		label: `close this group ${activeGroupCount}`,
+		description: "[focused]",
+		action: 'group',
+		group: activeGroup
+	});
+
+	tabGroups.all.forEach((g, idx) => {
+		const count = groupCounts.get(g) || 0;
+		qpItems.push({
+			label: `close group ${idx + 1} ${count}`,
+			description: g === activeGroup ? "focused" : "",
+			action: 'group',
+			group: g
+		});
+	});
+
+	const choice = await vscode.window.showQuickPick(qpItems, {
+		placeHolder: "Select markdown editors to close:"
+	});
+
+	if (!choice) {
 		return;
 	}
 
 	let closedCount = 0;
-	for (const tab of selectedGroup.group.tabs) {
-		if (tab.input instanceof vscode.TabInputText) {
-			const fsPath = tab.input.uri.fsPath;
-			const basename = path.basename(fsPath);
-			if (basename !== idxFilename && (basename.endsWith('.md') || basename.endsWith('.markdown'))) {
-				await vscode.window.tabGroups.close(tab);
-				closedCount++;
+	if (choice.action === 'all') {
+		for (const group of tabGroups.all) {
+			for (const tab of group.tabs) {
+				if (tab.input instanceof vscode.TabInputText) {
+					const fsPath = tab.input.uri.fsPath;
+					const basename = path.basename(fsPath);
+					if (basename !== idxFilename && (basename.endsWith('.md') || basename.endsWith('.markdown'))) {
+						try {
+							await tabGroups.close(tab);
+							closedCount++;
+						} catch (e) {}
+					}
+				}
 			}
 		}
+		vscode.window.showInformationMessage(`Closed ${closedCount} markdown editor(s) across all groups.`);
+	} else if (choice.action === 'group' && choice.group) {
+		for (const tab of choice.group.tabs) {
+			if (tab.input instanceof vscode.TabInputText) {
+				const fsPath = tab.input.uri.fsPath;
+				const basename = path.basename(fsPath);
+				if (basename !== idxFilename && (basename.endsWith('.md') || basename.endsWith('.markdown'))) {
+					try {
+						await tabGroups.close(tab);
+						closedCount++;
+					} catch (e) {}
+				}
+			}
+		}
+		const groupIndex = tabGroups.all.indexOf(choice.group);
+		vscode.window.showInformationMessage(`Closed ${closedCount} markdown editor(s) in Group ${groupIndex + 1}.`);
 	}
-	vscode.window.showInformationMessage(`Closed ${closedCount} markdown editor(s) in Group ${selectedGroup.groupIndex + 1}.`);
 }
 
 async function getSelectedFileLines(): Promise<FileLine[]> {
@@ -2333,7 +2572,7 @@ function watchSetup(context: vscode.ExtensionContext, manager: GutterDecorationM
 
 	context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async editor => {
 		if (editor) {
-			updateAllVisibleDecorations(manager);
+			updateAllVisibleDecorationsInstantly(manager);
 			await updateContexts();
 		} else {
 			await updateContexts();
@@ -2359,11 +2598,11 @@ function watchSetup(context: vscode.ExtensionContext, manager: GutterDecorationM
 	}));
 
 	context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(() => {
-		updateAllVisibleDecorations(manager);
+		updateAllVisibleDecorationsInstantly(manager);
 	}));
 
 	context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(() => {
-		updateAllVisibleDecorations(manager);
+		updateAllVisibleDecorationsInstantly(manager);
 	}));
 
 	const interval = setInterval(() => {
@@ -2469,8 +2708,12 @@ function commandsSetup(context: vscode.ExtensionContext) {
 		await closeAllMarkdownEditorsCommand();
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('idx.closeAllMarkdownEditorsInGroup', async () => {
-		await closeAllMarkdownEditorsInGroupCommand();
+	context.subscriptions.push(vscode.commands.registerCommand('idx.checkboxer', async () => {
+		await checkboxerCommand();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('idx.copyKeybindings', async () => {
+		await copyKeybindingsCommand();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('idx.openSelectedFiles', async () => {

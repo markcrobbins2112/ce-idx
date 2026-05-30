@@ -70,7 +70,8 @@
 		"onCommand:idx.setKeybindings",
 		"onCommand:idx.collectEditors",
 		"onCommand:idx.closeAllMarkdownEditors",
-		"onCommand:idx.closeAllMarkdownEditorsInGroup",
+		"onCommand:idx.checkboxer",
+		"onCommand:idx.copyKeybindings",
 		"onCommand:idx.openSelectedFiles",
 		"onCommand:idx.closeSelectedFiles",
 		"onCommand:idx.gotoSelectedFile",
@@ -146,8 +147,12 @@
 				"title": "IDX: Close All Markdown Editors"
 			},
 			{
-				"command": "idx.closeAllMarkdownEditorsInGroup",
-				"title": "IDX: Close All Markdown Editors In Group"
+				"command": "idx.checkboxer",
+				"title": "IDX: Checkboxer Label Toggle"
+			},
+			{
+				"command": "idx.copyKeybindings",
+				"title": "IDX: Copy Keybindings to Clipboard"
 			},
 			{
 				"command": "idx.openSelectedFiles",
@@ -236,23 +241,19 @@
 			},
 			{
 				"command": "idx.toggleCheckbox",
-				"key": "insert x",
-				"when": "idxFileActive"
+				"key": "insert x"
 			},
 			{
 				"command": "idx.collectEditors",
-				"key": "ctrl+` f11",
-				"when": "idxFileActive"
+				"key": "ctrl+` f11"
 			},
 			{
 				"command": "idx.closeAllMarkdownEditors",
-				"key": "ctrl+` ctrl+f4",
-				"when": "idxFileActive"
+				"key": "ctrl+` f4"
 			},
 			{
-				"command": "idx.closeAllMarkdownEditorsInGroup",
-				"key": "ctrl+` f4",
-				"when": "idxFileActive"
+				"command": "idx.checkboxer",
+				"key": "ctrl+alt+f10"
 			}
 		],
 		"configuration": {
