@@ -6,8 +6,7 @@
 
 # IDX
 ./.vscode/settings.json
-- [X] ./text.txt
-- [ ] FAIL: ./text.txt
+
 
 - [ ] ./text2.txt
 - [ ] ./text3.txt
@@ -20,7 +19,7 @@
 # ./text2.txt
 
 
-# ./text2.txt
+# [ ] ./text2.txt
 # [ ] ./text3.txt
 
 #./text2.txt
@@ -30,8 +29,7 @@
 - ./text2.txt
 - ./text3.txt
 
-
-./t*.txt
+./xt*.txt
 C:\_\__\idx\test-fixture\text2.txt
 ./text6.txt
 
@@ -42,80 +40,30 @@ C:\_\__\idx\test-fixture\text2.txt
 eee
 ee
 
-| Keys              | Command Name                  | Command Description                               | When                                                       |
-| ----------------- | ----------------------------- | ------------------------------------------------- | ---------------------------------------------------------- |
-| ` i               | idx.openIdx                   | Open/Edit Index File                              | !idxFileActive                                             |
-| f5                | idx.update                    | Update File Listings                              | idxFileActive                                              |
-| f2                | idx.gotoFile                  | Go to File/Folder under Cursor                    | idxCursorOnFileLine || idxFileActive && editorHasSelection |
-| alt+f2            | idx.openFile                  | Open File under Cursor (No Focus)                 | idxFileActive && editorHasSelection                        |
-| f4                | idx.closeFile                 | Close Open File under Cursor                      | idxCursorOnFileLine || idxFileActive && editorHasSelection |
-| ` backspace       | idx.returnToIdx               | Return to Index Location                          | !idxFileActive                                             |
-| ` ctrl+backspace  | idx.returnToIdxPicker         | Return to Index Location Picker                   | !idxFileActive                                             |
-| alt+` i           | idx.jumpAny                   | Jump to Any File (List All)                       | idxFileActive                                              |
-| alt+` alt+i       | idx.jumpWithin                | Jump Within Index Listings                        | idxFileActive                                              |
-| alt+i ctrl+insert | idx.copyProjectUnlisted       | Copy Project Unlisted Filelines                   | idxFileActive                                              |
-| alt+i alt+insert  | idx.copyProjectUnlistedPicker | Pick and Copy Project Unlisted Filelines          | idxFileActive                                              |
-| insert x          | idx.toggleCheckbox            | Toggle Checkbox on Current Line                   | always                                                     |
-| (none)            | idx.createMissing             | Create Missing File or Folder                     | always                                                     |
-| (none)            | idx.setKeybindings            | Set User Keybindings                              | always                                                     |
-| ctrl+` f11        | idx.collectEditors            | Collect Editors                                   | always                                                     |
-| ctrl+` f4         | idx.closeAllMarkdownEditors   | Close All Markdown Editors                        | always                                                     |
-| ctrl+alt+f10      | idx.checkboxer                | Checkboxer Label Toggle                           | always                                                     |
-| (none)            | idx.copyKeybindings           | Copy Commands to Clipboard                        | always                                                     |
-| (none)            | idx.openSelectedFiles         | Open Selected Files (No Focus)                    | always                                                     |
-| (none)            | idx.closeSelectedFiles        | Close Selected Files                              | always                                                     |
-| (none)            | idx.gotoSelectedFile          | Go to Selected File/Folder                        | always                                                     |
-| (none)            | idx.checkSelectedCheckboxes   | Mark Selected Lines with Checkboxes as Complete   | always                                                     |
-| (none)            | idx.uncheckSelectedCheckboxes | Mark Selected Lines with Checkboxes as Incomplete | always                                                     |
-| (none)            | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes                       | always                                                     |
-| (none)            | idx.addSelectedCheckboxes     | Add Checkboxes to Selection                       | always                                                     |
-
-| Keys              | Command Name                  | Command Description                      | When                                                       |
-| ----------------- | ----------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| ` i               | idx.openIdx                   | Open/Edit Index File                     | !idxFileActive                                             |
-| f5                | idx.update                    | Update File Listings                     | idxFileActive                                              |
-| f2                | idx.gotoFile                  | Go to File/Folder under Cursor           | idxCursorOnFileLine || idxFileActive && editorHasSelection |
-| alt+f2            | idx.openFile                  | Open File under Cursor (No Focus)        | idxFileActive && editorHasSelection                        |
-| f4                | idx.closeFile                 | Close Open File under Cursor             | idxCursorOnFileLine || idxFileActive && editorHasSelection |
-| ` backspace       | idx.returnToIdx               | Return to Index Location                 | !idxFileActive                                             |
-| ` ctrl+backspace  | idx.returnToIdxPicker         | Return to Index Location Picker          | !idxFileActive                                             |
-| alt+` i           | idx.jumpAny                   | Jump to Any File (List All)              | idxFileActive                                              |
-| alt+` alt+i       | idx.jumpWithin                | Jump Within Index Listings               | idxFileActive                                              |
-| alt+i ctrl+insert | idx.copyProjectUnlisted       | Copy Project Unlisted Filelines          | idxFileActive                                              |
-| alt+i alt+insert  | idx.copyProjectUnlistedPicker | Pick and Copy Project Unlisted Filelines | idxFileActive                                              |
-| insert x          | idx.toggleCheckbox            | Toggle Checkbox on Current Line          | always                                                     |
-| (none)            | idx.createMissing             | Create Missing File or Folder            | always                                                     |
-| (none)            | idx.setKeybindings            | Set User Keybindings                     | always                                                     |
-| ctrl+` f11        | idx.collectEditors            | Collect Editors                          | always                                                     |
-| ctrl+` f4         | idx.closeAllMarkdownEditors   | Close All Markdown Editors               | always                                                     |
-| ctrl+alt+f10      | idx.checkboxer                | Checkboxer Label Toggle                  | always                                                     |
-| (none)            | idx.copyKeybindings           | Copy Commands to Clipboard               | always                                                     |
-| (none)            | idx.openSelectedFiles         | Open Selected Files (No Focus)           | always                                                     |
-| (none)            | idx.closeSelectedFiles        | Close Selected Files                     | always                                                     |
-| (none)            | idx.gotoSelectedFile          | Go to Selected File/Folder               | always                                                     |
-| (none)            | idx.checkSelectedCheckboxes   | Mark Selected Lines Completed            | always                                                     |
-| (none)            | idx.uncheckSelectedCheckboxes | Mark Selected Lines Incomplete           | always                                                     |
-| (none)            | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes              | always                                                     |
-| (none)            | idx.addSelectedCheckboxes     | Add Checkboxes to Selection              | always                                                     |
-| Keys              | Command Name                  | Command Description                      | When                                                       |
-
-
-- idx.openIdx: ` i (!idxFileActive)
-- idx.update: f5 (idxFileActive)
-- idx.gotoFile: f2 (idxCursorOnFileLine)
-- idx.openFile: alt+f2 (idxCursorOnFileLine)
-- idx.closeFile: f4 (idxCursorOnFileLine)
-- idx.returnToIdx: ` r (!idxFileActive)
-- idx.returnToIdxPicker: ` i (!idxFileActive)
-- idx.jumpAny: alt+` i (idxFileActive)
-- idx.jumpWithin: alt+` alt+i (idxFileActive)
-- idx.copyProjectUnlisted: alt+i ctrl+insert (idxFileActive)
-- idx.copyProjectUnlistedPicker: alt+i alt+insert (idxFileActive)
-- idx.toggleCheckbox: insert x (always)
-- idx.collectEditors: ctrl+` f11 (always)
-- idx.closeAllMarkdownEditors: ctrl+` f4 (always)
-- idx.checkboxer: ctrl+alt+f10 (always)
-- idx.copyKeybindings:  (always)
+| Keys               | Command Name                  | Command Description                  | When                                                       |
+| ------------------ | ----------------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| ` i                | idx.openIdx                   | Go To Index File                     | !idxFileActive                                             |
+| f5                 | idx.update                    | Update Index File Listings           | idxFileActive                                              |
+| f2                 | idx.gotoFile                  | Edit Files                           | idxCursorOnFileLine || idxFileActive && editorHasSelection |
+| alt+f2             | idx.openFile                  | Open Files                           | idxFileActive && editorHasSelection                        |
+| f4                 | idx.closeFile                 | Close Files                          | idxCursorOnFileLine || idxFileActive && editorHasSelection |
+| ` backspace        | idx.returnToIdx               | Return to Index Location             | !idxFileActive                                             |
+| ` ctrl+backspace   | idx.returnToIdxPicker         | Return to Index Location Picker      | !idxFileActive                                             |
+| alt+` i            | idx.jumpAny                   | Jump to Any File (List All)          | idxFileActive                                              |
+| alt+` alt+i        | idx.jumpWithin                | Jump Within Index Listings           | idxFileActive                                              |
+| alt+i ctrl+insert  | idx.copyProjectUnlisted       | Copy Unindexed Filelines             | idxFileActive                                              |
+| alt+i alt+insert   | idx.copyProjectUnlistedPicker | Copy Unindexed Filelines from Picker | idxFileActive                                              |
+| insert x           | idx.toggleCheckbox            | Toggle Checkbox X                    | always                                                     |
+| (none)             | idx.createMissing             | Create Missing File or Folder        | always                                                     |
+| (none)             | idx.setKeybindings            | Set User Keybindings                 | always                                                     |
+| ctrl+` f11         | idx.collectEditors            | Collect and Group Editors            | always                                                     |
+| ctrl+` f4          | idx.closeAllMarkdownEditors   | Close All Markdown Editors           | always                                                     |
+| ctrl+alt+f10       | idx.checkboxer                | Checkbox Label Toggle                | always                                                     |
+| ctrl+alt+shift+f10 | idx.checkboxTag               | Checkbox Tag                         | always                                                     |
+| (none)             | idx.pickCommand               | Pick an IDX Command                  | always                                                     |
+| (none)             | idx.copyKeybindings           | Copy Commands to Clipboard           | always                                                     |
+| (none)             | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes          | always                                                     |
+| (none)             | idx.addSelectedCheckboxes     | Add Checkboxes to Selection          | always                                                     |
 
 ## Need two context when flags
 

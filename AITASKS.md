@@ -12,11 +12,20 @@
 	- [X] Fix the keybindings picker to allow search on detail and description
 
 ## New Tasks
+
+### [ ] Features file update
+	- [ ] NEW: Every command should have its own section with links back to command index table
+    	- [ ] each command section should give extensive explaination and example code on how it works
+    	- [ ] several examples may be required
+	- [ ] NEW: Feature type categories like 3. Quick-Fix Code Actions
+    	- [ ] should contain references to commands
+    	- [ ] every command should belong to a group
+
 ### [X] filespecs in headers
 	- Allow
 	- like
 		- # ./text2.txt
-### [ ] Change idx.checkboxer
+### [X] Change idx.checkboxer
 	- cycle only effects the tag and not the checkbox
 	- {none}
 	- NEW
@@ -26,12 +35,38 @@
 	- BUG
 	- DONE
 
-### [ ] New Command
+### [X] New Command
 	- idx.checkboxTag
 	- Checkbox Tag
 	- provides a picker to apply chosen tag to checkboxes
 	- ctrl+alt+shift+f10
 
+### [ ] New Command
+	- idx.newCheckboxLine
+	- New Checkbox Line
+  	- provides a picker
+    	- same level header {header prefix '###' etc}
+    	- parent level header {header prefix '###' etc}
+    	- sub level header {header prefix '###' etc}
+    	- bullet {use -}
+    	- empty {use no prefix}
+  	- on picker complete insert a new line below the current
+    	- preserve indents
+   	- write an empty checkbox with the picker prefix
+
+### [ ] New Command
+	- idx.newFilespec
+	- New Filespec
+	- when: always
+	- key: alt+i insert
+	- provides a picker
+		- top item is 'select many'
+			- changes picker into multi-select
+		- list of project files
+			- skip node_modules
+			- display relative path in detail
+		- on accept then another picker to ask to also add checkbox
+			- on accept then insert a relative path for the file with checkbox
 
 ### [X] checkbox commands should work on non bulleted boxes
 	- like:{no chars}[ ]
@@ -90,16 +125,16 @@
 	- [X] picker to select group
 	- [X] do not close idx.md
 
-### [ ] Pick an IDX Command
+### [X] Pick an IDX Command
 - show a picker of all idx commands
 - if context is not applicable to command then indicate it under a separator
 
-### [ ] idx.copyProjectUnlisted
+### [X] idx.copyProjectUnlisted
 	- undesired: does nothing
-### [ ] idx.copyProjectUnlistedPicker
+### [X] idx.copyProjectUnlistedPicker
 	- undesired: does nothing
 
-### [ ] Command Renames
+### [X] Command Renames
 
 | Keys              | Command Name                  | Command Description                               |
 | ----------------- | ----------------------------- | ------------------------------------------------- |
@@ -129,7 +164,7 @@
 | (none)            | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes                       |
 | (none)            | idx.addSelectedCheckboxes     | Add Checkboxes to Selection                       |
 
-### [ ] Remove Commands
+### [X] Remove Commands
 	- idx.openSelectedFiles
 	- idx.closeSelectedFiles
 	- idx.gotoSelectedFile
@@ -202,7 +237,7 @@
 ## [X] Checkbox cycling
 	- [X] when: always
 	- [X] current (insert x) should cycle
-	- [X] [X] => [ ] => [x] =>[X]
+	- [X] [X] => [x] => [x] =>[X]
 
 ## [X] More Checkbox cycling
 	- [X] when: always
@@ -255,13 +290,13 @@
 		- [X] should offer a picker with open files at the top
 	- [X] checkCheckbox - picker to choose whether to use X or x
 	- [X] uncheckCheckbox
-	- [X] FAIL: removeCheckboxes
+	- [X] removeCheckboxes
 		- [X] when line is a header like
 		- '# [ ] ./text2.txt'
 		- then the unwanted result is
 		- '#./text2.txt'
 	- [X] addCheckboxes - picker to choose: unchecked, X or x
-	- [X] FAIL: addCheckboxes - picker to choose: unchecked, X or x
+	- [X] addCheckboxes - picker to choose: unchecked, X or x
 		- [X] when line is a header like
 		- '# ./text2.txt'
 		- then the unwanted result is

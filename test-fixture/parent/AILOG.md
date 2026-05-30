@@ -5,8 +5,51 @@
 
 ## Commit Message
 ```text
-feat: add direction picker options when splitting editors to new group, permit filespec analysis inside markdown headers, ensure blank prefix displays on textless lines
+feat: prune defunct selection commands, implement tag-only checkboxer cycling, and add checkboxTag and pickCommand pickers
 ```
+
+## [2026-05-30T14:00:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Update `idx.checkboxer` to cycle ONLY the label tag (e.g. `{none}`, `NEW`, `OK`, `FIXED`, `FAIL`, `BUG`, `DONE`), leaving the checkbox state on active line(s) completely untouched.
+- Create new picker command `idx.checkboxTag` (Checkbox Tag) that prompts a QuickPick of tags and applies them to checkboxes.
+- Create new helper `isCommandApplicable` and command `idx.pickCommand` (Pick an IDX Command) to show a picker of all IDX commands, grouping non-applicable commands under a separate separator.
+- Prune/remove the 5 defunct selection-based commands from metadata descriptions, command implementations, and registrations.
+- Rename titles of standard commands according to the Command Renames specifications table.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Checkboxer Tag Cycling**:
+  - Re-implemented `checkboxerCommand` to parse lines and cycle only their label tag while perfectly preserving the checkbox characters. Removed the now-redundant `getNextCheckboxerState` helper.
+- **Checkbox Tag Picker**:
+  - Developed `checkboxTagCommand` to display a QuickPick list of tags (`{none}`, `NEW`, `OK`, `FIXED`, `FAIL`, `BUG`, `DONE`) and apply the chosen tag to selected lines.
+- **IDX Command Picker**:
+  - Crafted `pickCommandCommand` and `isCommandApplicable` functions to dynamically evaluate commands and partition them under standard separators ("Applicable Commands" vs "Non-Applicable Commands").
+- **Pruned Defunct Commands**:
+  - Completely removed the command implementations, registration hooks, and metadata descriptions for `openSelectedFiles`, `closeSelectedFiles`, `gotoSelectedFile`, `checkSelectedCheckboxes`, and `uncheckSelectedCheckboxes`.
+- **Command Renaming and Default Keybindings**:
+  - Renamed commands titles inside `package.json` and descriptions mapping inside `src/extension.ts` as specified.
+  - Linked `idx.checkboxTag` default keybinding to `ctrl+alt+shift+f10` inside `package.json` and registered both new commands successfully.
+
+---
+
+## [2026-05-30T13:54:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Remove uppercase/lowercase checkbox constraint from `AGENTS.md`.
+- Fix the issue where empty (textless) lines in `idx.md` fail to render the blank `:before` layout spacer decoration.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Removed Casing Constraint**:
+  - Removed the line `- AGENTS: never ever change an [X], never use an [X] always use lowercase [x]` from `AGENTS.md` as requested.
+- **Fixed Empty Line Decoration Override**:
+  - Identified the primary cause of blank decorations failing on completely empty lines in VS Code: the presence of `contentIconPath: blankUri` inside the `before` block overrode/preempted `contentText: '\u00a0'`.
+  - Removed `contentIconPath: blankUri` from `blankDecorationType`'s `before` block. This allows VS Code to reliably render the `20px` spacing (using `contentText: '\u00a0'`, `width: '12px'`, and `margin: '0 8px 0 0'`) on completely blank, textless lines without collapsing or jumping.
+
+---
 
 ## [2026-05-30T13:05:00Z]
 

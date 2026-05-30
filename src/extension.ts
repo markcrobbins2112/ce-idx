@@ -776,7 +776,6 @@ class GutterDecorationManager {
 			glyphMarginIconPath: blankUri,
 			glyphMarginIconSize: 'contain',
 			before: {
-				contentIconPath: blankUri,
 				margin: '0 8px 0 0',
 				width: '12px',
 				height: '12px',
@@ -1036,29 +1035,26 @@ class IdxStatusBarContainer {
 //#region _class_CommandMetadataContainer
 class CommandMetadataContainer {
 	static readonly descriptions: { [cmd: string]: string } = {
-		"idx.openIdx": "Open/Edit Index File",
-		"idx.update": "Update File Listings",
-		"idx.gotoFile": "Go to File/Folder under Cursor",
-		"idx.openFile": "Open File under Cursor (No Focus)",
-		"idx.closeFile": "Close Open File under Cursor",
+		"idx.openIdx": "Go To Index File",
+		"idx.update": "Update Index File Listings",
+		"idx.gotoFile": "Edit Files",
+		"idx.openFile": "Open Files",
+		"idx.closeFile": "Close Files",
 		"idx.returnToIdx": "Return to Index Location",
 		"idx.returnToIdxPicker": "Return to Index Location Picker",
 		"idx.jumpAny": "Jump to Any File (List All)",
 		"idx.jumpWithin": "Jump Within Index Listings",
-		"idx.copyProjectUnlisted": "Copy Project Unlisted Filelines",
-		"idx.copyProjectUnlistedPicker": "Pick and Copy Project Unlisted Filelines",
-		"idx.toggleCheckbox": "Toggle Checkbox on Current Line",
+		"idx.copyProjectUnlisted": "Copy Unindexed Filelines",
+		"idx.copyProjectUnlistedPicker": "Copy Unindexed Filelines from Picker",
+		"idx.toggleCheckbox": "Toggle Checkbox X",
 		"idx.createMissing": "Create Missing File or Folder",
 		"idx.setKeybindings": "Set User Keybindings",
-		"idx.collectEditors": "Collect Editors",
+		"idx.collectEditors": "Collect and Group Editors",
 		"idx.closeAllMarkdownEditors": "Close All Markdown Editors",
-		"idx.checkboxer": "Checkboxer Label Toggle",
+		"idx.checkboxer": "Checkbox Label Toggle",
+		"idx.checkboxTag": "Checkbox Tag",
+		"idx.pickCommand": "Pick an IDX Command",
 		"idx.copyKeybindings": "Copy Commands to Clipboard",
-		"idx.openSelectedFiles": "Open Selected Files (No Focus)",
-		"idx.closeSelectedFiles": "Close Selected Files",
-		"idx.gotoSelectedFile": "Go to Selected File/Folder",
-		"idx.checkSelectedCheckboxes": "Mark Selected Lines with Checkboxes as Complete",
-		"idx.uncheckSelectedCheckboxes": "Mark Selected Lines with Checkboxes as Incomplete",
 		"idx.removeSelectedCheckboxes": "Remove Selection Checkboxes",
 		"idx.addSelectedCheckboxes": "Add Checkboxes to Selection"
 	};
@@ -2522,65 +2518,6 @@ async function toggleCheckboxCommand() {
 	await vscode.workspace.applyEdit(edit);
 }
 
-function getNextCheckboxerState(hasCheckbox: boolean, checkboxChar: string, label: string): { nextHasCheckbox: boolean; nextCheckboxChar: string; nextLabel: string } {
-	if (!hasCheckbox) {
-		return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: '' };
-	}
-
-	if (checkboxChar === ' ') {
-		if (label === '') {
-			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'NEW' };
-		}
-		if (label === 'NEW') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
-		}
-		if (label === 'FAIL') {
-			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FIX' };
-		}
-		if (label === 'FIX') {
-			return { nextHasCheckbox: false, nextCheckboxChar: '', nextLabel: '' };
-		}
-		return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
-	}
-
-	if (checkboxChar === 'X') {
-		if (label === '') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
-		}
-		if (label === 'OK') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'FIXED' };
-		}
-		if (label === 'FIXED') {
-			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
-		}
-		return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
-	}
-
-	if (checkboxChar === 'x') {
-		if (label === '') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
-		}
-		if (label === 'FAIL') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
-		}
-		if (label === 'FIX') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'OK' };
-		}
-		if (label === 'NEW') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
-		}
-		if (label === 'OK') {
-			return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: 'FIXED' };
-		}
-		if (label === 'FIXED') {
-			return { nextHasCheckbox: true, nextCheckboxChar: ' ', nextLabel: 'FAIL' };
-		}
-		return { nextHasCheckbox: true, nextCheckboxChar: 'X', nextLabel: '' };
-	}
-
-	return { nextHasCheckbox: false, nextCheckboxChar: '', nextLabel: '' };
-}
-
 async function checkboxerCommand() {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
@@ -2620,7 +2557,7 @@ async function checkboxerCommand() {
 				hasCheckbox = true;
 				checkboxChar = cbMatch[1];
 				const afterCb = rest.substring(cbMatch[0].length);
-				const labelMatch = afterCb.match(/^(NEW|OK|FIXED|FAIL|FIX):\s*/);
+				const labelMatch = afterCb.match(/^([a-zA-Z]+):\s*/);
 				if (labelMatch) {
 					label = labelMatch[1];
 					coreText = afterCb.substring(labelMatch[0].length);
@@ -2628,7 +2565,7 @@ async function checkboxerCommand() {
 					coreText = afterCb;
 				}
 			} else {
-				const labelMatch = rest.match(/^(NEW|OK|FIXED|FAIL|FIX):\s*/);
+				const labelMatch = rest.match(/^([a-zA-Z]+):\s*/);
 				if (labelMatch) {
 					label = labelMatch[1];
 					coreText = rest.substring(labelMatch[0].length);
@@ -2654,21 +2591,27 @@ async function checkboxerCommand() {
 
 	// Compute next state based on the first line
 	const first = bulletLines[0];
-	const nextState = getNextCheckboxerState(first.hasCheckbox, first.checkboxChar, first.label);
+	const tags = ["", "NEW", "OK", "FIXED", "FAIL", "BUG", "DONE"];
+	const currentTag = first.label;
+	let nextTag = "NEW";
+	const currentIdx = tags.indexOf(currentTag);
+	if (currentIdx !== -1) {
+		nextTag = tags[(currentIdx + 1) % tags.length];
+	}
 
 	const edit = new vscode.WorkspaceEdit();
 	for (const item of bulletLines) {
 		let replacement = item.coreText;
-		if (nextState.nextHasCheckbox) {
-			const cbStr = `[${nextState.nextCheckboxChar}] `;
-			if (nextState.nextLabel !== '') {
-				replacement = `${cbStr}${nextState.nextLabel}: ${item.coreText}`;
+		if (item.hasCheckbox) {
+			const cbStr = `[${item.checkboxChar}] `;
+			if (nextTag !== '') {
+				replacement = `${cbStr}${nextTag}: ${item.coreText}`;
 			} else {
 				replacement = `${cbStr}${item.coreText}`;
 			}
 		} else {
-			if (nextState.nextLabel !== '') {
-				replacement = `${nextState.nextLabel}: ${item.coreText}`;
+			if (nextTag !== '') {
+				replacement = `${nextTag}: ${item.coreText}`;
 			}
 		}
 
@@ -2682,6 +2625,208 @@ async function checkboxerCommand() {
 	}
 
 	await vscode.workspace.applyEdit(edit);
+}
+
+async function checkboxTagCommand() {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+
+	const document = editor.document;
+	const selectedLines = getSelectedLines(editor);
+
+	interface BulletLine {
+		line: number;
+		indent: string;
+		bullet: string;
+		hasCheckbox: boolean;
+		checkboxChar: string;
+		label: string;
+		coreText: string;
+	}
+
+	const bulletLines: BulletLine[] = [];
+	for (const line of selectedLines) {
+		const lineText = document.lineAt(line).text;
+		const match = lineText.match(/^(\s*)([-*+]\s+|\#+\s+|[0-9]+\.\s+)?(.*)$/);
+		if (match) {
+			const indent = match[1];
+			const bullet = match[2] || "";
+			const rest = match[3];
+
+			let hasCheckbox = false;
+			let checkboxChar = "";
+			let label = "";
+			let coreText = rest;
+
+			const cbMatch = rest.match(/^\[([ xX])\]\s*/);
+			if (cbMatch) {
+				hasCheckbox = true;
+				checkboxChar = cbMatch[1];
+				const afterCb = rest.substring(cbMatch[0].length);
+				const labelMatch = afterCb.match(/^([a-zA-Z]+):\s*/);
+				if (labelMatch) {
+					label = labelMatch[1];
+					coreText = afterCb.substring(labelMatch[0].length);
+				} else {
+					coreText = afterCb;
+				}
+			} else {
+				const labelMatch = rest.match(/^([a-zA-Z]+):\s*/);
+				if (labelMatch) {
+					label = labelMatch[1];
+					coreText = rest.substring(labelMatch[0].length);
+				}
+			}
+
+			bulletLines.push({
+				line,
+				indent,
+				bullet,
+				hasCheckbox,
+				checkboxChar,
+				label,
+				coreText
+			});
+		}
+	}
+
+	if (bulletLines.length === 0) {
+		vscode.window.showInformationMessage("No valid markdown lines found in selected line(s).");
+		return;
+	}
+
+	const tags = ["{none}", "NEW", "OK", "FIXED", "FAIL", "BUG", "DONE"];
+	const selection = await vscode.window.showQuickPick(tags, {
+		placeHolder: "Select tag to apply"
+	});
+
+	if (selection === undefined) {
+		return;
+	}
+
+	const nextTag = selection === "{none}" ? "" : selection;
+
+	const edit = new vscode.WorkspaceEdit();
+	for (const item of bulletLines) {
+		let replacement = item.coreText;
+		if (item.hasCheckbox) {
+			const cbStr = `[${item.checkboxChar}] `;
+			if (nextTag !== '') {
+				replacement = `${cbStr}${nextTag}: ${item.coreText}`;
+			} else {
+				replacement = `${cbStr}${item.coreText}`;
+			}
+		} else {
+			if (nextTag !== '') {
+				replacement = `${nextTag}: ${item.coreText}`;
+			}
+		}
+
+		const finalLineText = `${item.indent}${item.bullet}${replacement}`;
+		const lineText = document.lineAt(item.line).text;
+		const lineRange = new vscode.Range(
+			new vscode.Position(item.line, 0),
+			new vscode.Position(item.line, lineText.length)
+		);
+		edit.replace(document.uri, lineRange, finalLineText);
+	}
+
+	await vscode.workspace.applyEdit(edit);
+}
+
+function isCommandApplicable(command: string, editor: vscode.TextEditor | undefined, hasFileLine: boolean, isIdxActive: boolean): boolean {
+	switch (command) {
+		case "idx.openIdx":
+		case "idx.returnToIdx":
+		case "idx.returnToIdxPicker":
+			return !isIdxActive;
+		case "idx.update":
+		case "idx.jumpAny":
+		case "idx.jumpWithin":
+		case "idx.copyProjectUnlisted":
+		case "idx.copyProjectUnlistedPicker":
+			return isIdxActive;
+		case "idx.gotoFile":
+		case "idx.closeFile":
+			const hasSel = editor ? !editor.selection.isEmpty : false;
+			return hasFileLine || (isIdxActive && hasSel);
+		case "idx.openFile":
+			const hasSel2 = editor ? !editor.selection.isEmpty : false;
+			return isIdxActive && hasSel2;
+		default:
+			// All other commands are always applicable
+			return true;
+	}
+}
+
+async function pickCommandCommand() {
+	const editor = vscode.window.activeTextEditor;
+	let isIdxActive = false;
+	let hasFileLine = false;
+
+	if (editor) {
+		const doc = editor.document;
+		const config = vscode.workspace.getConfiguration("idx");
+		const idxFilename = config.get<string>("indexFilename", "idx.md");
+		if (path.basename(doc.uri.fsPath) === idxFilename) {
+			isIdxActive = true;
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (workspaceFolders) {
+				const workspaceRoot = workspaceFolders[0].uri.fsPath;
+				const fileLines = await getOrUpdateActiveFileLines(editor, workspaceRoot);
+				const cursorLine = editor.selection.active.line;
+				hasFileLine = fileLines.some(fl => fl.lineIndex === cursorLine);
+			}
+		}
+	}
+
+	const Cmc_ = CommandMetadataContainer;
+	const allCmds = Object.keys(Cmc_.descriptions);
+
+	const applicable: vscode.QuickPickItem[] = [];
+	const nonApplicable: vscode.QuickPickItem[] = [];
+
+	for (const cmd of allCmds) {
+		if (cmd === "idx.pickCommand") {
+			continue;
+		}
+		const desc = Cmc_.descriptions[cmd] || cmd;
+		const item: vscode.QuickPickItem = {
+			label: desc,
+			detail: cmd
+		};
+		if (isCommandApplicable(cmd, editor, hasFileLine, isIdxActive)) {
+			applicable.push(item);
+		} else {
+			nonApplicable.push(item);
+		}
+	}
+
+	const quickPickItems: vscode.QuickPickItem[] = [];
+	if (applicable.length > 0) {
+		quickPickItems.push({
+			label: "Applicable Commands",
+			kind: vscode.QuickPickItemKind.Separator
+		});
+		quickPickItems.push(...applicable);
+	}
+	if (nonApplicable.length > 0) {
+		quickPickItems.push({
+			label: "Non-Applicable Commands",
+			kind: vscode.QuickPickItemKind.Separator
+		});
+		quickPickItems.push(...nonApplicable);
+	}
+
+	const selected = await vscode.window.showQuickPick(quickPickItems, {
+		placeHolder: "Select an IDX command to execute"
+	});
+
+	if (selected && selected.detail) {
+		await vscode.commands.executeCommand(selected.detail);
+	}
 }
 
 async function copyKeybindingsCommand() {
@@ -2749,6 +2894,8 @@ const defaultKeybindings = [
 	{ "command": "idx.collectEditors", "key": "ctrl+` f11" },
 	{ "command": "idx.closeAllMarkdownEditors", "key": "ctrl+` f4" },
 	{ "command": "idx.checkboxer", "key": "ctrl+alt+f10" },
+	{ "command": "idx.checkboxTag", "key": "ctrl+alt+shift+f10" },
+	{ "command": "idx.pickCommand", "key": "" },
 	{ "command": "idx.copyKeybindings", "key": "" }
 ];
 
@@ -3123,219 +3270,6 @@ async function closeAllMarkdownEditorsCommand() {
 	}
 }
 
-async function getSelectedFileLines(): Promise<FileLine[]> {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return [];
-	}
-
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders) {
-		return [];
-	}
-	const workspaceRoot = workspaceFolders[0].uri.fsPath;
-
-	const fileLines = await parseIdxMarkdown(editor.document.getText(), workspaceRoot, new Set());
-
-	const selectedLinesList = getSelectedLines(editor);
-	const selectedLines = new Set<number>(selectedLinesList);
-
-	return fileLines.filter(fl => selectedLines.has(fl.lineIndex));
-}
-
-async function openSelectedFilesCommand() {
-	const selectedFl = await getSelectedFileLines();
-	if (selectedFl.length === 0) {
-		vscode.window.showInformationMessage("No indexed files found in the current selection.");
-		return;
-	}
-	let count = 0;
-	for (const fl of selectedFl) {
-		if (fl.exists && !fl.isFolder) {
-			try {
-				const doc = await vscode.workspace.openTextDocument(fl.resolvedPath);
-				await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-				count++;
-			} catch (e) {}
-		}
-	}
-	vscode.window.showInformationMessage(`Opened ${count} file(s) in the background.`);
-}
-
-async function closeSelectedFilesCommand() {
-	const selectedFl = await getSelectedFileLines();
-	if (selectedFl.length === 0) {
-		vscode.window.showInformationMessage("No indexed files found in the current selection.");
-		return;
-	}
-
-	const pathsToClose = new Set<string>();
-	for (const fl of selectedFl) {
-		if (fl.isMultiMatch && fl.resolvedPaths) {
-			for (const p of fl.resolvedPaths) {
-				pathsToClose.add(p);
-			}
-		} else if (fl.exists && !fl.isFolder) {
-			pathsToClose.add(fl.resolvedPath);
-		}
-	}
-
-	let closedCount = 0;
-	for (const group of vscode.window.tabGroups.all) {
-		for (const tab of group.tabs) {
-			if (tab.input instanceof vscode.TabInputText && pathsToClose.has(tab.input.uri.fsPath)) {
-				await vscode.window.tabGroups.close(tab);
-				closedCount++;
-			}
-		}
-	}
-	vscode.window.showInformationMessage(`Closed ${closedCount} active editor(s) corresponding to selection.`);
-}
-
-async function gotoSelectedFileCommand() {
-	const selectedFl = await getSelectedFileLines();
-	if (selectedFl.length === 0) {
-		vscode.window.showInformationMessage("No indexed files found in the current selection.");
-		return;
-	}
-
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders) {
-		return;
-	}
-	const workspaceRoot = workspaceFolders[0].uri.fsPath;
-
-	const existingFiles: { label: string; description: string; resolvedPath: string }[] = [];
-	for (const fl of selectedFl) {
-		if (fl.isMultiMatch && fl.resolvedPaths) {
-			for (const p of fl.resolvedPaths) {
-				existingFiles.push({
-					label: path.basename(p),
-					description: path.relative(workspaceRoot, p).replace(/\\/g, '/'),
-					resolvedPath: p
-				});
-			}
-		} else if (fl.exists && !fl.isFolder) {
-			existingFiles.push({
-				label: path.basename(fl.resolvedPath),
-				description: path.relative(workspaceRoot, fl.resolvedPath).replace(/\\/g, '/'),
-				resolvedPath: fl.resolvedPath
-			});
-		}
-	}
-
-	if (existingFiles.length === 0) {
-		vscode.window.showInformationMessage("No existing files found in current selection.");
-		return;
-	}
-
-	for (const f of existingFiles) {
-		try {
-			const doc = await vscode.workspace.openTextDocument(f.resolvedPath);
-			await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-		} catch (e) {}
-	}
-
-	const fileChoice = await vscode.window.showQuickPick(existingFiles, {
-		placeHolder: "Select which file to focus/activate:"
-	});
-
-	if (fileChoice) {
-		try {
-			const doc = await vscode.workspace.openTextDocument(fileChoice.resolvedPath);
-			await vscode.window.showTextDocument(doc);
-		} catch (e) {}
-	}
-}
-
-async function checkSelectedCheckboxesCommand() {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
-
-	const choice = await vscode.window.showQuickPick(["x (Incomplete/task flag)", "X (Task complete flag)"], {
-		placeHolder: "Select completed checkmark character style:"
-	});
-	if (!choice) {
-		return;
-	}
-	const markChar = choice.startsWith("x") ? "x" : "X";
-
-	const document = editor.document;
-	const selections = editor.selections;
-
-	const edit = new vscode.WorkspaceEdit();
-	let matchedCount = 0;
-
-	for (const sel of selections) {
-		for (let lineIdx = sel.start.line; lineIdx <= sel.end.line; lineIdx++) {
-			const lineText = document.lineAt(lineIdx).text;
-			const match = lineText.match(/\[([ xX])\]/);
-			if (match) {
-				const checkboxChar = match[1];
-				const index = lineText.indexOf(`[${checkboxChar}]`);
-				if (index !== -1) {
-					const range = new vscode.Range(
-						new vscode.Position(lineIdx, index + 1),
-						new vscode.Position(lineIdx, index + 2)
-					);
-					edit.replace(document.uri, range, markChar);
-					matchedCount++;
-				}
-			}
-		}
-	}
-
-	if (matchedCount > 0) {
-		await vscode.workspace.applyEdit(edit);
-		vscode.window.showInformationMessage(`Marked completed with '${markChar}' for ${matchedCount} checkbox(es).`);
-	} else {
-		vscode.window.showInformationMessage("No checkboxes found in current selection.");
-	}
-}
-
-async function uncheckSelectedCheckboxesCommand() {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
-
-	const document = editor.document;
-	const selections = editor.selections;
-
-	const edit = new vscode.WorkspaceEdit();
-	let matchedCount = 0;
-
-	for (const sel of selections) {
-		for (let lineIdx = sel.start.line; lineIdx <= sel.end.line; lineIdx++) {
-			const lineText = document.lineAt(lineIdx).text;
-			const match = lineText.match(/\[([ xX])\]/);
-			if (match) {
-				const checkboxChar = match[1];
-				if (checkboxChar !== ' ') {
-					const index = lineText.indexOf(`[${checkboxChar}]`);
-					if (index !== -1) {
-						const range = new vscode.Range(
-							new vscode.Position(lineIdx, index + 1),
-							new vscode.Position(lineIdx, index + 2)
-						);
-						edit.replace(document.uri, range, " ");
-						matchedCount++;
-					}
-				}
-			}
-		}
-	}
-
-	if (matchedCount > 0) {
-		await vscode.workspace.applyEdit(edit);
-		vscode.window.showInformationMessage(`Marked unchecked for ${matchedCount} checkbox(es).`);
-	} else {
-		vscode.window.showInformationMessage("No checked checkboxes found in current selection.");
-	}
-}
-
 async function removeSelectedCheckboxesCommand() {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
@@ -3609,24 +3543,12 @@ function commandsSetup(context: vscode.ExtensionContext) {
 		await copyKeybindingsCommand();
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('idx.openSelectedFiles', async () => {
-		await openSelectedFilesCommand();
+	context.subscriptions.push(vscode.commands.registerCommand('idx.checkboxTag', async () => {
+		await checkboxTagCommand();
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('idx.closeSelectedFiles', async () => {
-		await closeSelectedFilesCommand();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('idx.gotoSelectedFile', async () => {
-		await gotoSelectedFileCommand();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('idx.checkSelectedCheckboxes', async () => {
-		await checkSelectedCheckboxesCommand();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('idx.uncheckSelectedCheckboxes', async () => {
-		await uncheckSelectedCheckboxesCommand();
+	context.subscriptions.push(vscode.commands.registerCommand('idx.pickCommand', async () => {
+		await pickCommandCommand();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('idx.removeSelectedCheckboxes', async () => {

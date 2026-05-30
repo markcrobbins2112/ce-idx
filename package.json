@@ -71,12 +71,9 @@
 		"onCommand:idx.collectEditors",
 		"onCommand:idx.closeAllMarkdownEditors",
 		"onCommand:idx.checkboxer",
+		"onCommand:idx.checkboxTag",
+		"onCommand:idx.pickCommand",
 		"onCommand:idx.copyKeybindings",
-		"onCommand:idx.openSelectedFiles",
-		"onCommand:idx.closeSelectedFiles",
-		"onCommand:idx.gotoSelectedFile",
-		"onCommand:idx.checkSelectedCheckboxes",
-		"onCommand:idx.uncheckSelectedCheckboxes",
 		"onCommand:idx.removeSelectedCheckboxes",
 		"onCommand:idx.addSelectedCheckboxes"
 	],
@@ -84,23 +81,23 @@
 		"commands": [
 			{
 				"command": "idx.openIdx",
-				"title": "IDX: Open/Edit Index File"
+				"title": "IDX: Go To Index File"
 			},
 			{
 				"command": "idx.update",
-				"title": "IDX: Update File Listings"
+				"title": "IDX: Update Index File Listings"
 			},
 			{
 				"command": "idx.gotoFile",
-				"title": "IDX: Go to File/Folder under Cursor"
+				"title": "IDX: Edit Files"
 			},
 			{
 				"command": "idx.openFile",
-				"title": "IDX: Open File under Cursor (No Focus)"
+				"title": "IDX: Open Files"
 			},
 			{
 				"command": "idx.closeFile",
-				"title": "IDX: Close Open File under Cursor"
+				"title": "IDX: Close Files"
 			},
 			{
 				"command": "idx.returnToIdx",
@@ -120,15 +117,15 @@
 			},
 			{
 				"command": "idx.copyProjectUnlisted",
-				"title": "IDX: Copy Project Unlisted Filelines"
+				"title": "IDX: Copy Unindexed Filelines"
 			},
 			{
 				"command": "idx.copyProjectUnlistedPicker",
-				"title": "IDX: Pick and Copy Project Unlisted Filelines"
+				"title": "IDX: Copy Unindexed Filelines from Picker"
 			},
 			{
 				"command": "idx.toggleCheckbox",
-				"title": "IDX: Toggle Checkbox on Current Line"
+				"title": "IDX: Toggle Checkbox X"
 			},
 			{
 				"command": "idx.createMissing",
@@ -140,7 +137,7 @@
 			},
 			{
 				"command": "idx.collectEditors",
-				"title": "IDX: Collect Editors"
+				"title": "IDX: Collect and Group Editors"
 			},
 			{
 				"command": "idx.closeAllMarkdownEditors",
@@ -148,31 +145,19 @@
 			},
 			{
 				"command": "idx.checkboxer",
-				"title": "IDX: Checkboxer Label Toggle"
+				"title": "IDX: Checkbox Label Toggle"
+			},
+			{
+				"command": "idx.checkboxTag",
+				"title": "IDX: Checkbox Tag"
+			},
+			{
+				"command": "idx.pickCommand",
+				"title": "IDX: Pick an IDX Command"
 			},
 			{
 				"command": "idx.copyKeybindings",
 				"title": "IDX: Copy Commands to Clipboard"
-			},
-			{
-				"command": "idx.openSelectedFiles",
-				"title": "IDX: Open Selected Files (No Focus)"
-			},
-			{
-				"command": "idx.closeSelectedFiles",
-				"title": "IDX: Close Selected Files"
-			},
-			{
-				"command": "idx.gotoSelectedFile",
-				"title": "IDX: Go to Selected File/Folder"
-			},
-			{
-				"command": "idx.checkSelectedCheckboxes",
-				"title": "IDX: Mark Selected Lines with Checkboxes as Complete"
-			},
-			{
-				"command": "idx.uncheckSelectedCheckboxes",
-				"title": "IDX: Mark Selected Lines with Checkboxes as Incomplete"
 			},
 			{
 				"command": "idx.removeSelectedCheckboxes",
@@ -254,6 +239,10 @@
 			{
 				"command": "idx.checkboxer",
 				"key": "ctrl+alt+f10"
+			},
+			{
+				"command": "idx.checkboxTag",
+				"key": "ctrl+alt+shift+f10"
 			}
 		],
 		"configuration": {
