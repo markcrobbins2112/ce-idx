@@ -777,7 +777,6 @@ class GutterDecorationManager {
 			glyphMarginIconPath: blankUri,
 			glyphMarginIconSize: 'contain',
 			before: {
-				contentIconPath: blankUri,
 				margin: '0 8px 0 0',
 				width: '12px',
 				height: '12px',
@@ -1058,8 +1057,8 @@ class CommandMetadataContainer {
 		"idx.openSelectedFiles": "Open Selected Files (No Focus)",
 		"idx.closeSelectedFiles": "Close Selected Files",
 		"idx.gotoSelectedFile": "Go to Selected File/Folder",
-		"idx.checkSelectedCheckboxes": "Mark Selected Lines Completed",
-		"idx.uncheckSelectedCheckboxes": "Mark Selected Lines Incomplete",
+		"idx.checkSelectedCheckboxes": "Mark Selected Lines with Checkboxes as Complete",
+		"idx.uncheckSelectedCheckboxes": "Mark Selected Lines with Checkboxes as Incomplete",
 		"idx.removeSelectedCheckboxes": "Remove Selection Checkboxes",
 		"idx.addSelectedCheckboxes": "Add Checkboxes to Selection"
 	};
@@ -1573,7 +1572,7 @@ async function updateIdxCommand(document: vscode.TextDocument) {
 	vscode.window.showInformationMessage("Index list updated successfully.");
 }
 
-async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: string[]) {
+async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: string[], preserveFocus: boolean) {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) { return; }
 	const workspaceRoot = workspaceFolders[0].uri.fsPath;
@@ -1684,76 +1683,161 @@ async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: s
 		}
 
 		const choice = await vscode.window.showQuickPick(qpItems, {
-			placeHolder: `Files matching pattern: ${targetFileLine.filepath}`
-		});
+			placeHolder: `Files matching pattern: ${targetFileLine.filepath}`,
+			canPickMany: preserveFocus
+		}) as any;
 
 		if (!choice) {
 			return;
 		}
 
-		if (uncreatedItem && choice.label === uncreatedItem.label) {
-			const createQpItems = uncreatedFiles.map(fl => {
-				return {
-					label: path.basename(fl.resolvedPath),
-					description: path.relative(workspaceRoot, fl.resolvedPath).replace(/\\/g, '/'),
-					fileLine: fl,
-					picked: true
-				};
-			});
-
-			const selectedToCreate = await vscode.window.showQuickPick(createQpItems, {
-				placeHolder: "Select files to create and open:",
-				canPickMany: true
-			});
-
-			if (selectedToCreate && selectedToCreate.length > 0) {
-				for (const item of selectedToCreate) {
-					await handleMissingFileCreation(item.fileLine, workspaceRoot);
-				}
-				fileStatsCache.clear();
-				for (const fl of fileLines) {
-					const stats = getCachedFileStats(fl.resolvedPath);
-					fl.exists = stats.exists;
-					fl.isFolder = stats.isFolder;
-				}
+		if (preserveFocus) {
+			const choices = choice as vscode.QuickPickItem[];
+			if (choices.length === 0) {
+				return;
 			}
-			continue;
-		}
 
-		if (closeItem && choice.label === closeItem.label) {
-			const closeQpItems = openFiles.map(f => {
-				return {
-					label: path.basename(f),
-					description: path.relative(workspaceRoot, f).replace(/\\/g, '/'),
-					filePath: f,
-					picked: true
-				};
-			});
+			const selectedUncreated = choices.find(item => uncreatedItem && item.label === uncreatedItem.label);
+			const selectedClose = choices.find(item => closeItem && item.label === closeItem.label);
 
-			const selectedToClose = await vscode.window.showQuickPick(closeQpItems, {
-				placeHolder: "Select files to close:",
-				canPickMany: true
-			});
+			if (selectedUncreated) {
+				const createQpItems = uncreatedFiles.map(fl => {
+					return {
+						label: path.basename(fl.resolvedPath),
+						description: path.relative(workspaceRoot, fl.resolvedPath).replace(/\\/g, '/'),
+						fileLine: fl,
+						picked: true
+					};
+				});
 
-			if (selectedToClose && selectedToClose.length > 0) {
-				const pathsToClose = new Set(selectedToClose.map(item => { return item.filePath; }));
-				for (const group of vscode.window.tabGroups.all) {
-					for (const tab of group.tabs) {
-						if (tab.input instanceof vscode.TabInputText && pathsToClose.has(tab.input.uri.fsPath)) {
-							await vscode.window.tabGroups.close(tab);
+				const selectedToCreate = await vscode.window.showQuickPick(createQpItems, {
+					placeHolder: "Select files to create and open:",
+					canPickMany: true
+				});
+
+				if (selectedToCreate && selectedToCreate.length > 0) {
+					for (const item of selectedToCreate) {
+						await handleMissingFileCreation(item.fileLine, workspaceRoot);
+					}
+					fileStatsCache.clear();
+					for (const fl of fileLines) {
+						const stats = getCachedFileStats(fl.resolvedPath);
+						fl.exists = stats.exists;
+						fl.isFolder = stats.isFolder;
+					}
+				}
+				continue;
+			}
+
+			if (selectedClose) {
+				const closeQpItems = openFiles.map(f => {
+					return {
+						label: path.basename(f),
+						description: path.relative(workspaceRoot, f).replace(/\\/g, '/'),
+						filePath: f,
+						picked: true
+					};
+				});
+
+				const selectedToClose = await vscode.window.showQuickPick(closeQpItems, {
+					placeHolder: "Select files to close:",
+					canPickMany: true
+				});
+
+				if (selectedToClose && selectedToClose.length > 0) {
+					const pathsToClose = new Set(selectedToClose.map(item => { return item.filePath; }));
+					for (const group of vscode.window.tabGroups.all) {
+						for (const tab of group.tabs) {
+							if (tab.input instanceof vscode.TabInputText && pathsToClose.has(tab.input.uri.fsPath)) {
+								await vscode.window.tabGroups.close(tab);
+							}
 						}
 					}
 				}
+				continue;
 			}
-			continue;
-		}
 
-		const chosenPathPart = choice.description;
-		if (chosenPathPart) {
-			const absPath = path.resolve(workspaceRoot, chosenPathPart);
-			const doc = await vscode.workspace.openTextDocument(absPath);
-			await vscode.window.showTextDocument(doc);
+			// Open all selected files
+			for (const item of choices) {
+				const chosenPathPart = item.description;
+				if (chosenPathPart) {
+					try {
+						const absPath = path.resolve(workspaceRoot, chosenPathPart);
+						const doc = await vscode.workspace.openTextDocument(absPath);
+						await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
+					} catch (e) {}
+				}
+			}
 			return;
+
+		} else {
+			const singleChoice = choice as vscode.QuickPickItem;
+			if (uncreatedItem && singleChoice.label === uncreatedItem.label) {
+				const createQpItems = uncreatedFiles.map(fl => {
+					return {
+						label: path.basename(fl.resolvedPath),
+						description: path.relative(workspaceRoot, fl.resolvedPath).replace(/\\/g, '/'),
+						fileLine: fl,
+						picked: true
+					};
+				});
+
+				const selectedToCreate = await vscode.window.showQuickPick(createQpItems, {
+					placeHolder: "Select files to create and open:",
+					canPickMany: true
+				});
+
+				if (selectedToCreate && selectedToCreate.length > 0) {
+					for (const item of selectedToCreate) {
+						await handleMissingFileCreation(item.fileLine, workspaceRoot);
+					}
+					fileStatsCache.clear();
+					for (const fl of fileLines) {
+						const stats = getCachedFileStats(fl.resolvedPath);
+						fl.exists = stats.exists;
+						fl.isFolder = stats.isFolder;
+					}
+				}
+				continue;
+			}
+
+			if (closeItem && singleChoice.label === closeItem.label) {
+				const closeQpItems = openFiles.map(f => {
+					return {
+						label: path.basename(f),
+						description: path.relative(workspaceRoot, f).replace(/\\/g, '/'),
+						filePath: f,
+						picked: true
+					};
+				});
+
+				const selectedToClose = await vscode.window.showQuickPick(closeQpItems, {
+					placeHolder: "Select files to close:",
+					canPickMany: true
+				});
+
+				if (selectedToClose && selectedToClose.length > 0) {
+					const pathsToClose = new Set(selectedToClose.map(item => { return item.filePath; }));
+					for (const group of vscode.window.tabGroups.all) {
+						for (const tab of group.tabs) {
+							if (tab.input instanceof vscode.TabInputText && pathsToClose.has(tab.input.uri.fsPath)) {
+								await vscode.window.tabGroups.close(tab);
+							}
+						}
+					}
+				}
+				continue;
+			}
+
+			const chosenPathPart = singleChoice.description;
+			if (chosenPathPart) {
+				try {
+					const absPath = path.resolve(workspaceRoot, chosenPathPart);
+					const doc = await vscode.workspace.openTextDocument(absPath);
+					await vscode.window.showTextDocument(doc, { preserveFocus: false, preview: false });
+				} catch (e) {}
+				return;
+			}
 		}
 	}
 }
@@ -1813,7 +1897,7 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 
 		if (targetFileLine.filepath.includes('*')) {
 			const allWorkspaceFiles = await getAllWorkspaceFiles(workspaceRoot);
-			await showWildcardPicker(targetFileLine, allWorkspaceFiles);
+			await showWildcardPicker(targetFileLine, allWorkspaceFiles, preserveFocus);
 			return;
 		}
 
@@ -1822,21 +1906,37 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 		} else if (targetFileLine.isMultiMatch && targetFileLine.resolvedPaths && targetFileLine.resolvedPaths.length > 1) {
 			const qpItems = targetFileLine.resolvedPaths.map(p => {
 				const rel = path.relative(workspaceRoot, p).replace(/\\/g, '/');
+				const isOpen = openFilePaths.has(p);
 				return {
 					label: path.basename(p),
-					description: rel,
+					description: (isOpen ? "$(circle-filled) [Open] " : "$(circle-outline) [Closed] ") + rel,
 					resolvedPath: p
 				};
 			});
-			const selected = await vscode.window.showQuickPick(qpItems, {
-				placeHolder: `Multiple files match '${targetFileLine.filepath}'. Select one:`
-			});
-			if (selected) {
-				try {
-					const doc = await vscode.workspace.openTextDocument(selected.resolvedPath);
-					await vscode.window.showTextDocument(doc, { preserveFocus, preview: false });
-				} catch (e) {
-					vscode.window.showErrorMessage(`Could not open file: ${selected.resolvedPath}`);
+			if (preserveFocus) {
+				const selected = await vscode.window.showQuickPick(qpItems, {
+					placeHolder: `Multiple files match '${targetFileLine.filepath}'. Select files to open:`,
+					canPickMany: true
+				});
+				if (selected && selected.length > 0) {
+					for (const s of selected) {
+						try {
+							const doc = await vscode.workspace.openTextDocument(s.resolvedPath);
+							await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
+						} catch (e) {}
+					}
+				}
+			} else {
+				const selected = await vscode.window.showQuickPick(qpItems, {
+					placeHolder: `Multiple files match '${targetFileLine.filepath}'. Select one:`
+				});
+				if (selected) {
+					try {
+						const doc = await vscode.workspace.openTextDocument(selected.resolvedPath);
+						await vscode.window.showTextDocument(doc, { preserveFocus: false, preview: false });
+					} catch (e) {
+						vscode.window.showErrorMessage(`Could not open file: ${selected.resolvedPath}`);
+					}
 				}
 			}
 		} else {
@@ -2490,7 +2590,7 @@ async function checkboxerCommand() {
 	const document = editor.document;
 	const selectedLines = getSelectedLines(editor);
 
-	// Gather all selected bulleted markdown lines
+	// Gather all selected markdown lines (bulleted, headers, or plain)
 	interface BulletLine {
 		line: number;
 		indent: string;
@@ -2504,11 +2604,11 @@ async function checkboxerCommand() {
 	const bulletLines: BulletLine[] = [];
 	for (const line of selectedLines) {
 		const lineText = document.lineAt(line).text;
-		const bulletMatch = lineText.match(/^(\s*)([-*+]\s+)(.*)$/);
-		if (bulletMatch) {
-			const indent = bulletMatch[1];
-			const bullet = bulletMatch[2];
-			const rest = bulletMatch[3];
+		const match = lineText.match(/^(\s*)([-*+]\s+|\#+\s+|[0-9]+\.\s+)?(.*)$/);
+		if (match) {
+			const indent = match[1];
+			const bullet = match[2] || "";
+			const rest = match[3];
 
 			let hasCheckbox = false;
 			let checkboxChar = "";
@@ -2548,7 +2648,7 @@ async function checkboxerCommand() {
 	}
 
 	if (bulletLines.length === 0) {
-		vscode.window.showInformationMessage("No bulleted markdown lines found in selected line(s).");
+		vscode.window.showInformationMessage("No valid markdown lines found in selected line(s).");
 		return;
 	}
 
@@ -2777,6 +2877,9 @@ async function setKeybindingsCommand() {
 }
 
 async function collectEditorsCommand() {
+	const originalActiveEditor = vscode.window.activeTextEditor;
+	const originalDocUri = originalActiveEditor?.document.uri;
+
 	const openTabs: { tab: vscode.Tab; label: string; docUri: vscode.Uri }[] = [];
 	for (const group of vscode.window.tabGroups.all) {
 		for (const tab of group.tabs) {
@@ -2813,12 +2916,23 @@ async function collectEditorsCommand() {
 	const targetGroupPickerItems: { label: string; viewColumn?: vscode.ViewColumn; isNew: boolean }[] = [];
 	
 	const groups = vscode.window.tabGroups.all;
-	groups.forEach((g, idx) => {
+	const activeGroup = vscode.window.tabGroups.activeTabGroup;
+	const activeGroupIdx = groups.indexOf(activeGroup);
+	if (activeGroupIdx !== -1) {
 		targetGroupPickerItems.push({
-			label: `Move to Group ${idx + 1}`,
-			viewColumn: g.viewColumn,
+			label: `Active Group ${activeGroupIdx + 1}`,
+			viewColumn: activeGroup.viewColumn,
 			isNew: false
 		});
+	}
+	groups.forEach((g, idx) => {
+		if (g !== activeGroup) {
+			targetGroupPickerItems.push({
+				label: `Move to Group ${idx + 1}`,
+				viewColumn: g.viewColumn,
+				isNew: false
+			});
+		}
 	});
 	
 	targetGroupPickerItems.push({
@@ -2855,6 +2969,14 @@ async function collectEditorsCommand() {
 			}
 		} catch (e) {}
 	}
+
+	if (originalDocUri) {
+		try {
+			const doc = await vscode.workspace.openTextDocument(originalDocUri);
+			await vscode.window.showTextDocument(doc, { preserveFocus: false });
+		} catch (e) {}
+	}
+
 	vscode.window.showInformationMessage(`Moved ${selectedItems.length} editor(s) to selected group.`);
 }
 
@@ -3191,22 +3313,25 @@ async function removeSelectedCheckboxesCommand() {
 	for (const sel of selections) {
 		for (let lineIdx = sel.start.line; lineIdx <= sel.end.line; lineIdx++) {
 			const lineText = document.lineAt(lineIdx).text;
-			const match = lineText.match(/[-*+]?\s*\[([ xX])\]\s*/);
+			const match = lineText.match(/^(\s*)([-*+]|\#+|[0-9]+\.)?\s*\[([ xX])\]\s*(.*)$/);
 			if (match) {
-				const matchedStr = match[0];
-				const index = lineText.indexOf(matchedStr);
-				if (index !== -1) {
-					let replacement = "";
-					if (matchedStr.trim().startsWith("-") || matchedStr.trim().startsWith("*") || matchedStr.trim().startsWith("+")) {
-						replacement = matchedStr.match(/[-*+]/)?.[0] + " ";
-					}
-					const range = new vscode.Range(
-						new vscode.Position(lineIdx, index),
-						new vscode.Position(lineIdx, index + matchedStr.length)
-					);
-					edit.replace(document.uri, range, replacement);
-					matchedCount++;
+				const indent = match[1];
+				const prefix = match[2];
+				const rest = match[4];
+
+				let replacement = "";
+				if (prefix) {
+					replacement = `${indent}${prefix} ${rest}`;
+				} else {
+					replacement = `${indent}${rest}`;
 				}
+
+				const range = new vscode.Range(
+					new vscode.Position(lineIdx, 0),
+					new vscode.Position(lineIdx, lineText.length)
+				);
+				edit.replace(document.uri, range, replacement);
+				matchedCount++;
 			}
 		}
 	}
@@ -3256,17 +3381,24 @@ async function addSelectedCheckboxesCommand() {
 				continue;
 			}
 
-			const match = lineText.match(/^(\s*)([-*+]\s+)?(.*)$/);
+			const match = lineText.match(/^(\s*)([-*+]|\#+|[0-9]+\.)?\s*(.*)$/);
 			if (match) {
 				const indent = match[1];
-				const bullet = match[2] || "- ";
+				const prefix = match[2];
 				const rest = match[3];
+
+				let replacement = "";
+				if (prefix) {
+					replacement = `${indent}${prefix} ${checkboxStr}${rest}`;
+				} else {
+					replacement = `${indent}${checkboxStr}${rest}`;
+				}
 
 				const range = new vscode.Range(
 					new vscode.Position(lineIdx, 0),
 					new vscode.Position(lineIdx, lineText.length)
 				);
-				edit.replace(document.uri, range, `${indent}${bullet}${checkboxStr}${rest}`);
+				edit.replace(document.uri, range, replacement);
 				addedCount++;
 			}
 		}

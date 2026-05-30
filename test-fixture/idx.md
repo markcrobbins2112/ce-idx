@@ -1,15 +1,20 @@
+<!-- markdownlint-disable MD001 -->
+<!-- markdownlint-disable MD009 -->
+<!-- markdownlint-disable MD018 -->
+<!-- markdownlint-disable MD056 -->
+<!-- markdownlint-disable MD060 -->
+
 # IDX
 ./.vscode/settings.json
 - [X] ./text.txt
 - [ ] FAIL: ./text.txt
 
-- [x] ./text2.txt
-- [x] ./text3.txt
+- [ ] ./text2.txt
+- [ ] ./text3.txt
 
-# [ ] ./text2.txt
+# [X] ./text2.txt
 # [ ] ./text3.txt
 
-- [ ] # ./text2.txt
 
 # ./text2.txt
 # ./text2.txt

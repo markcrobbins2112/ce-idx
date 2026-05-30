@@ -1,11 +1,44 @@
+<!-- markdownlint-disable MD009 -->
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
 
 ## Commit Message
 ```text
-feat: support copy commands list table export, non-eager select-to-activate gotoFile picker, and empty lines alignment space rendering
+feat: add multi-select to openFile pickers, non-bullet checkbox support, collect editors active group and focus fixes, blank :before on empty lines
 ```
+
+## [2026-05-30T12:40:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Support multi-select QuickPick for matching files on `openFile` (`preserveFocus: true`) in single-filespec multi-match and wildcard pickers.
+- Enable checkbox toggling, checking, and unchecking commands on non-bulleted lines (including markdown headers and plain lines).
+- Improve `collectEditorsCommand` to display "Active Group {number}" at the top of the target picker, and restore focus to the original active editor tab once the action completes.
+- Fix blank gutter alignment on lines with no characters (empty lines) by styling `:before` with `contentText: "\u00a0"` and removing the overriding empty `contentIconPath: blankUri`.
+- Rename marking commands in both `package.json` and extension codes to "Mark Selected Lines with Checkboxes as Complete/Incomplete".
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Blank Gutter Alignment Fix**:
+  - Removed `contentIconPath: blankUri` from `blankDecorationType`'s `:before` style block to prevent VS Code from collapsing the pseudo-element on completely empty lines. Set space representation natively via `contentText: "\u00a0"`.
+- **Multi-Select for openFile Match Pickers**:
+  - Remapped `showWildcardPicker` to accept `preserveFocus: boolean`. If true, `canPickMany` is set to `true` to allow multi-selection on background `openFile` actions, opening all selected files with `preserveFocus: true`.
+  - Modified the single-filespec multiple matches QuickPick list in `resolveFilelineUnderCursor` to enable multi-selection when `preserveFocus` is true.
+- **Support Checkboxes on Headers & Plain Lines**:
+  - Re-anchored regex check logic inside `checkboxer` and other checkbox-handling commands to allow checkboxes to sit after bullets, markdown header hashes (`#`), decimal prefixes, or straight indentation.
+  - Refactored `removeSelectedCheckboxesCommand` and `addSelectedCheckboxesCommand` to cleanly handle or strip checkboxes from headings/unprefixed lines without messing up spacing or converting headers into lists.
+- **Collect Editors Enhancements**:
+  - Prepended `Active Group {number}` with corresponding `viewColumn` at the top of target groups list.
+  - Tracked and focused the original editor tab after closing/moving target document group blocks.
+- **Marking Commands Renaming**:
+  - Renamed `idx.checkSelectedCheckboxes` to `"Mark Selected Lines with Checkboxes as Complete"`.
+  - Renamed `idx.uncheckSelectedCheckboxes` to `"Mark Selected Lines with Checkboxes as Incomplete"`.
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify extension responsiveness using the updated commands in the development host.
 
 ## [2026-05-30T11:52:00Z]
 
@@ -193,7 +226,7 @@ feat: support copy commands list table export, non-eager select-to-activate goto
   - Deprecated and removed `blankDecorationType`, `blankUri`, `blankSvg` variables and properties.
   - Trimmed the document-wide padding loop `blankRanges` from the decoration update schedule to prevent line jumping or cursor displacement.
 - **Re-Established Percent-Encoded SVGs**:
-  - Configured `getUri` to leverage `vscode.Uri.parse("data:image/svg+xml," + encodeURIComponent(svgStr))`. 
+  - Configured `getUri` to leverage `vscode.Uri.parse("data:image/svg+xml," + encodeURIComponent(svgStr))`.
   - Standardizing on standard UTF-8 XML percent encoding ensures maximum compatibility inside the VS Code CSS renderer engine, making the 5 standard circular and square status indicators (blue, white outline, green solid circles, white outline, green solid squares) render perfectly.
 - **Modified Files**:
   - `src/extension.ts`

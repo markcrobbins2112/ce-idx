@@ -168,11 +168,11 @@
 			},
 			{
 				"command": "idx.checkSelectedCheckboxes",
-				"title": "IDX: Mark Selected Lines Completed"
+				"title": "IDX: Mark Selected Lines with Checkboxes as Complete"
 			},
 			{
 				"command": "idx.uncheckSelectedCheckboxes",
-				"title": "IDX: Mark Selected Lines Incomplete"
+				"title": "IDX: Mark Selected Lines with Checkboxes as Incomplete"
 			},
 			{
 				"command": "idx.removeSelectedCheckboxes",
