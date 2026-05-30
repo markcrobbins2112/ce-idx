@@ -504,12 +504,11 @@ async function parseIdxMarkdown(documentText: string, workspaceRoot: string, ope
 		if (trimmed.startsWith('#')) {
 			currentHeading = trimmed.replace(/^#+\s+/, '');
 			folderStack.length = 0;
-			continue;
 		}
 
 		const indentation = getIndentation(lineText);
 
-		const lineRegex = /^([-*+]\s+|\d+\.\s+)?(?:\[([ xX])\]\s*)?(.*)$/;
+		const lineRegex = /^(?:#+\s+)?(?:([-*+]\s+|\d+\.\s+)?(?:\[([ xX])\]\s*)?)?(.*)$/;
 		const match = trimmed.match(lineRegex);
 		if (!match) continue;
 
@@ -777,6 +776,7 @@ class GutterDecorationManager {
 			glyphMarginIconPath: blankUri,
 			glyphMarginIconSize: 'contain',
 			before: {
+				contentIconPath: blankUri,
 				margin: '0 8px 0 0',
 				width: '12px',
 				height: '12px',
@@ -2948,26 +2948,64 @@ async function collectEditorsCommand() {
 		return;
 	}
 
-	let targetColumn: vscode.ViewColumn;
+	let targetColumn: vscode.ViewColumn | undefined;
+	let useCommand: string | undefined;
+
 	if (groupChoice.isNew) {
-		const maxCol = groups.reduce((max, g) => g.viewColumn > max ? g.viewColumn : max, vscode.ViewColumn.One);
-		targetColumn = maxCol + 1;
+		const directionChoice = await vscode.window.showQuickPick([
+			{ label: "Above", cmd: "workbench.action.moveEditorToAboveGroup" },
+			{ label: "Below", cmd: "workbench.action.moveEditorToBelowGroup" },
+			{ label: "Right", cmd: "workbench.action.moveEditorToRightGroup" },
+			{ label: "Left", cmd: "workbench.action.moveEditorToLeftGroup" },
+			{ label: "New Window", cmd: "workbench.action.moveEditorToNewWindow" }
+		], {
+			placeHolder: "Select direction/window for the new group:"
+		});
+
+		if (!directionChoice) {
+			return;
+		}
+		useCommand = directionChoice.cmd;
 	} else {
 		targetColumn = groupChoice.viewColumn || vscode.ViewColumn.One;
 	}
 
-	for (const item of selectedItems) {
-		const ot = item.tabInfo;
+	if (useCommand) {
+		const firstItem = selectedItems[0].tabInfo;
 		try {
-			if (ot.tab.group.viewColumn !== targetColumn) {
-				const doc = await vscode.workspace.openTextDocument(ot.docUri);
-				await vscode.window.tabGroups.close(ot.tab);
-				await vscode.window.showTextDocument(doc, {
-					viewColumn: targetColumn,
-					preserveFocus: true
-				});
+			const doc = await vscode.workspace.openTextDocument(firstItem.docUri);
+			await vscode.window.showTextDocument(doc, { viewColumn: firstItem.tab.group.viewColumn, preserveFocus: false });
+			await vscode.commands.executeCommand(useCommand);
+
+			const newActiveGroup = vscode.window.tabGroups.activeTabGroup;
+			const targetCol = newActiveGroup.viewColumn;
+
+			for (let i = 1; i < selectedItems.length; i++) {
+				const ot = selectedItems[i].tabInfo;
+				try {
+					const remDoc = await vscode.workspace.openTextDocument(ot.docUri);
+					await vscode.window.tabGroups.close(ot.tab);
+					await vscode.window.showTextDocument(remDoc, {
+						viewColumn: targetCol,
+						preserveFocus: true
+					});
+				} catch (e) {}
 			}
 		} catch (e) {}
+	} else {
+		for (const item of selectedItems) {
+			const ot = item.tabInfo;
+			try {
+				if (ot.tab.group.viewColumn !== targetColumn) {
+					const doc = await vscode.workspace.openTextDocument(ot.docUri);
+					await vscode.window.tabGroups.close(ot.tab);
+					await vscode.window.showTextDocument(doc, {
+						viewColumn: targetColumn,
+						preserveFocus: true
+					});
+				}
+			} catch (e) {}
+		}
 	}
 
 	if (originalDocUri) {

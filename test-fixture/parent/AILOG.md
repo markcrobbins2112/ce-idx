@@ -5,8 +5,33 @@
 
 ## Commit Message
 ```text
-feat: add multi-select to openFile pickers, non-bullet checkbox support, collect editors active group and focus fixes, blank :before on empty lines
+feat: add direction picker options when splitting editors to new group, permit filespec analysis inside markdown headers, ensure blank prefix displays on textless lines
 ```
+
+## [2026-05-30T13:05:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Support direction picker options (`Above`, `Below`, `Right`, `Left`, `New Window`) when creating/moving to a new editor group via `idx.collectEditors`.
+- Allow filespec parsing and checking/unchecking within markdown headers (`# ./file.txt`, `# [ ] ./file.txt`).
+- Ensure that lines with no characters (empty lines) reliably receive a blank `:before` pseudo-element by combining `contentIconPath: blankUri` and `contentText: '\u00a0'` to prevent collapse.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Collect Editors Direction Selection**:
+  - Enhanced `collectEditorsCommand` to trigger a direction selection QuickPick when "Move to New Group" is selected.
+  - Resolved chosen directions to respective workspace actions (`workbench.action.moveEditorToAboveGroup`, etc.) using `vscode.commands.executeCommand` on the first editor.
+  - Automatically moved any remaining selected files to that newly created directional group or window.
+- **Header Filespec Parsing & Management**:
+  - Removed `continue` constraint on `#` prefix lines inside `parseIdxMarkdown`.
+  - Updated `lineRegex` in `parseIdxMarkdown` to optionally support `#` tags at the start of lines to perfectly capture header-based checkboxes and header-based filespecs.
+- **Non-collapsing Blank Gutters on Empty Lines**:
+  - Enforced both `contentIconPath: blankUri` and `contentText: '\u00a0'` in `blankDecorationType` to prevent VS Code from collapsing the pseudo-element on completely empty lines while maintaining perfect visual spacing alignment.
+
+---
+
+### 🚀 Recommended Next Steps
+- Verify visual filespec alignment across headers, list items, and blank lines.
 
 ## [2026-05-30T12:40:00Z]
 

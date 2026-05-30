@@ -12,10 +12,26 @@
 	- [X] Fix the keybindings picker to allow search on detail and description
 
 ## New Tasks
-### filespecs in headers
+### [X] filespecs in headers
 	- Allow
 	- like
 		- # ./text2.txt
+### [ ] Change idx.checkboxer
+	- cycle only effects the tag and not the checkbox
+	- {none}
+	- NEW
+	- OK
+	- FIXED
+	- FAIL
+	- BUG
+	- DONE
+
+### [ ] New Command
+	- idx.checkboxTag
+	- Checkbox Tag
+	- provides a picker to apply chosen tag to checkboxes
+	- ctrl+alt+shift+f10
+
 
 ### [X] checkbox commands should work on non bulleted boxes
 	- like:{no chars}[ ]
@@ -50,12 +66,12 @@
 		- [X] editors were copied, not moved
 		- [X] item for Active Group {number} at the top
 		- [X] focus should return to the original tab
-		- [ ] NEW: new Group should offer another picker
-			- [ ] Above
-			- [ ] Below
-			- [ ] Right
-			- [ ] Left
-			- [ ] New Window
+		- [ ] FAIL: new Group should offer another picker
+			- [x] Above
+			- [x] Below
+			- [x] Right
+			- [x] Left
+			- [x] New Window
 
 ### [X] Close all markdown editors
 	- [X] when idx.md is active :UNDO
@@ -74,11 +90,58 @@
 	- [X] picker to select group
 	- [X] do not close idx.md
 
-## [X] Use Glyph Margin instead of Gutter for icons [abort]
-	- [X] change the visibilty of the Glyph Margin to true automatically
+### [ ] Pick an IDX Command
+- show a picker of all idx commands
+- if context is not applicable to command then indicate it under a separator
+
+### [ ] idx.copyProjectUnlisted
+	- undesired: does nothing
+### [ ] idx.copyProjectUnlistedPicker
+	- undesired: does nothing
+
+### [ ] Command Renames
+
+| Keys              | Command Name                  | Command Description                               |
+| ----------------- | ----------------------------- | ------------------------------------------------- |
+| ` i               | idx.openIdx                   | Go To Index File                                  |
+| f5                | idx.update                    | Update Index File Listings                        |
+| f2                | idx.gotoFile                  | Edit Files                                        |
+| alt+f2            | idx.openFile                  | Open Files                                        |
+| f4                | idx.closeFile                 | Close Files                                       |
+| ` backspace       | idx.returnToIdx               | Return to Index Location                          |
+| ` ctrl+backspace  | idx.returnToIdxPicker         | Return to Index Location Picker                   |
+| alt+` i           | idx.jumpAny                   | Jump to Any File (List All)                       |
+| alt+` alt+i       | idx.jumpWithin                | Jump Within Index Listings                        |
+| alt+i ctrl+insert | idx.copyProjectUnlisted       | Copy Unindexed Filelines                          |
+| alt+i alt+insert  | idx.copyProjectUnlistedPicker | Copy Unindexed Filelines from Picker              |
+| insert x          | idx.toggleCheckbox            | Toggle Checkbox X                                 |
+| (none)            | idx.createMissing             | Create Missing File or Folder                     |
+| (none)            | idx.setKeybindings            | Set User Keybindings                              |
+| ctrl+` f11        | idx.collectEditors            | Collect and Group Editors                         |
+| ctrl+` f4         | idx.closeAllMarkdownEditors   | Close All Markdown Editors                        |
+| ctrl+alt+f10      | idx.checkboxer                | Checkbox Label Toggle                             |
+| (none)            | idx.copyKeybindings           | Copy Commands to Clipboard                        |
+| (none)            | idx.openSelectedFiles         | Open Selected Files (No Focus)                    |
+| (none)            | idx.closeSelectedFiles        | Close Selected Files                              |
+| (none)            | idx.gotoSelectedFile          | Go to Selected File/Folder                        |
+| (none)            | idx.checkSelectedCheckboxes   | Mark Selected Lines with Checkboxes as Complete   |
+| (none)            | idx.uncheckSelectedCheckboxes | Mark Selected Lines with Checkboxes as Incomplete |
+| (none)            | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes                       |
+| (none)            | idx.addSelectedCheckboxes     | Add Checkboxes to Selection                       |
+
+### [ ] Remove Commands
+	- idx.openSelectedFiles
+	- idx.closeSelectedFiles
+	- idx.gotoSelectedFile
+	- idx.checkSelectedCheckboxes
+	- idx.uncheckSelectedCheckboxes
 
 ## [ ] FAIL: Lines with no characters did not get a blank :before
 	- [ ] try this again and don't lose the working icon functionality
+
+
+## [X] Use Glyph Margin instead of Gutter for icons [abort]
+	- [X] change the visibilty of the Glyph Margin to true automatically
 
 ## [X] OK: Lines in idx.md should have a :before icon,
 	- if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
@@ -176,7 +239,7 @@
 	- [X] adjust other commands that work off selection
     	- [X] idxCursorOnFileLine may not be true, see selections
 
-## Rename Commands
+## [X] Rename Commands
 	- [X] Mark Selected Lines Incomplete => Mark Selected Lines with Checkboxes as Incomplete
 	- [X] Mark Selected Lines Complete => Mark Selected Lines with Checkboxes as Complete
 
