@@ -2,15 +2,6 @@
 <!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
 
-## 📌 Pending Commit Message
-```text
-feat(decorations): resolve blank indicator rendering in idx.md
-
-- Implement dynamic Base64 SVG URI parsing via vscode.Uri.parse and Buffer.from to resolve the blank icon issue.
-- Remove contentText unicode carriage spacings to prevent layout rendering conflicts in VS Code.
-- Clean up unused blankDecorationType and any associated empty line placeholders.
-```
-
 ## [2026-05-30T08:55:00Z]
 
 ### 🎯 Primary Goals & Requirements

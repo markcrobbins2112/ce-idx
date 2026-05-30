@@ -3,7 +3,7 @@
 <!-- markdownlint-disable MD007 -->
 # AITASKS
 
-## [x] Implement these and update the UPPERCASE.md files
+## [ ] Implement these and update the UPPERCASE.md files (Never check this item, just do it)
 
 ## New Commands
 ### [X] Set User Keybindings
@@ -17,7 +17,8 @@
 - [X] with open files
   - [X] multiSelect picker listing open editors
     - [X] with selected files, a new picker listing groups to move selected editors to, or new group
-      - [x] FAIL: editors were copied, not moved
+      - [ ] FAIL: editors were copied, not moved
+        - [ ] still does copy
 
 ### [X] Close all markdown editors
 - [X] when idx.md is active :UNDO
@@ -39,32 +40,39 @@
 ## [X] Use Glyph Margin instead of Gutter for icons [abort]
 - [X] change the visibilty of the Glyph Margin to true automatically
 
-## [x] Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
-- [x] FAIL: lines with no characters did not get a blank :before
+## [ ] NEW: Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
+- [ ] FAIL: lines with no characters did not get a blank :before
+  - [ ] try this again and don't lose the working icon functionality
 
 ## [X] Line icon
 - [X] seems to get stuck on green, especially when launched from idx.md
   - [X] make these update faster
 
-## [x] Command to copy all commands and their assigned keys to clipboard with notification
-- [x] format the commands into columns
-  - [x] keys
-  - [x] command name
-  - [x] command description
-  - [x] when
+## [X] Command to copy all commands and their assigned keys to clipboard with notification
+- [X] format the commands into columns
+  - [X] keys
+  - [X] command name
+  - [X] command description
+  - [X] when
 
-## [x] listing to set keybindings
-- [x] format the commands
-  - [x] keys
-  - [x] command name
-  - [x] command description
-  - [x] when
+## [ ] Bad filespace detection
+- example
+	- '| ` i               | idx.openIdx                   | Open/Edit Index File                     | !idxFileActive      |'
+	- detection on Open/Edit
+  	- filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
+
+## [ ] listing to set keybindings
+- [ ] NEW: format the commands
+  - separator: when [orderby when, then command name]
+  - label: [key]
+  - description: command description
+  - detail: command name
 
 ## Change Bindings
-- [x] idx.returnToIdx: ` r (!idxFileActive)
-  - [x] to "` backspace"
-- [x] idx.returnToIdxPicker: ` i (!idxFileActive)
-  - [x] to "` ctrl+backspace"
+- [X] idx.returnToIdx: ` r (!idxFileActive)
+  - [X] to "` backspace"
+- [X] idx.returnToIdxPicker: ` i (!idxFileActive)
+  - [X] to "` ctrl+backspace"
 
 
 
@@ -78,10 +86,7 @@
 - [x] idx.toggleCheckbox: insert x (always)
 - [x] idx.checkboxer: ctrl+alt+f10 (always)
 
-
-
-
-## [x] filspecs with wildcards
+## [X] filspecs with wildcards
 - example
 	- ./t*.txt
 	- these specs can also appear as globs
@@ -106,9 +111,9 @@
 - [X] see ai/S-00035-checkboxer.md
 - [X] assign this to key ctrl+alt+f10
 
-## [x] Checkbox cyclers apply to selected text
-- [x] if items selected are in different check states, they are synchronized
-- [x] all items selected are cycled
+## [X] Checkbox cyclers apply to selected text
+- [X] if items selected are in different check states, they are synchronized
+- [X] all items selected are cycled
 
 
 ## [X] Paint the filespec of a fileline
@@ -121,27 +126,27 @@
   - [X] folder ./folder or fullpath/folder: yellow
   - [X] wildcard: filenameonly.* or *.ext or /filename.* or or /file*.* or etc: purple
 
-## [x] selections
-	- [x] if a selection is not including the full line then that line is not counted in the selection
-	- [x] if a selection is including the remainder of aline then that line is counted in the selection
-	- [x] if a selection is not present, assume the cursor line is the selection
+## [X] selections
+	- [X] if a selection is not including the full line then that line is not counted in the selection
+	- [X] if a selection is including the remainder of aline then that line is counted in the selection
+	- [X] if a selection is not present, assume the cursor line is the selection
 
-## [x] multi cursor
-- [x] make commands handle multi cursor
-- [x] put a list here of commands that are multi cursor
-- [x] put a list here of commands that are not multi cursor
+## [X] multi cursor
+- [X] make commands handle multi cursor
+- [X] put a list here of commands that are multi cursor
+- [X] put a list here of commands that are not multi cursor
 
-## [x] Operate on selected lines
-- [x] for every filespec in selection, make these commands available
-  - [x] FAIL: openFile
-    - [x] should ensure all the files in the selected filespecs are open
-    - [x] observed only opening the file where the cursor was at
-  - [x] FAIL: closeFile
-    - [x] should ensure all the files in the selected filespecs are closed
-    - [x] observed only closing the file where the cursor was at
-  - [x] FAIL: gotoFile - open the files and offer a picker for which file to activate
-    - [x] should offer a picker with open files at the top
-    - [x] observed only opening the file where the cursor was at
+## [ ] Operate on selected lines
+- [ ] for every filespec in selection, make these commands available
+  - [ ] FAIL: openFile
+    - [ ] should ensure all the files in the selected filespecs are open
+    - [ ] observed only opening the file where the cursor was at
+  - [ ] FAIL: closeFile
+    - [ ] should ensure all the files in the selected filespecs are closed
+    - [ ] observed only closing the file where the cursor was at
+  - [ ] FAIL: gotoFile - open the files and offer a picker for which file to activate
+    - [ ] should offer a picker with open files at the top
+    - [ ] observed only opening the file where the cursor was at
   - [x] checkCheckbox - picker to choose whether to use X or x
   - [x] uncheckCheckbox
   - [x] removeCheckboxes
@@ -157,34 +162,34 @@
 - [X] idx.closeFile: when - idxCursorOnFileLine - close an open file
 
 ## When for commands
-- [x] idx.openIdx: when - !idxFileActive
-- [x] idx.update: when - idxFileActive
-- [x] idx.gotoFile: when - idxCursorOnFileLine
-- [x] idx.openFile: when - idxCursorOnFileLine
-- [x] idx.closeFile: when - idxCursorOnFileLine
-- [x] idx.returnToIdx: when - !idxFileActive
-- [x] idx.returnToIdxPicker: when - !idxFileActive
-- [x] idx.jumpAny: when - idxFileActive
-- [x] idx.jumpWithin: when - idxFileActive
-- [x] idx.copyProjectUnlisted: when - none
-- [x] idx.copyProjectUnlistedPicker: when - none
-- [x] idx.toggleCheckbox: when - idxFileActive
-- [x] idx.createMissing: when - idxCursorOnFileLine
+- [X] idx.openIdx: when - !idxFileActive
+- [X] idx.update: when - idxFileActive
+- [X] idx.gotoFile: when - idxCursorOnFileLine
+- [X] idx.openFile: when - idxCursorOnFileLine
+- [X] idx.closeFile: when - idxCursorOnFileLine
+- [X] idx.returnToIdx: when - !idxFileActive
+- [X] idx.returnToIdxPicker: when - !idxFileActive
+- [X] idx.jumpAny: when - idxFileActive
+- [X] idx.jumpWithin: when - idxFileActive
+- [X] idx.copyProjectUnlisted: when - none
+- [X] idx.copyProjectUnlistedPicker: when - none
+- [X] idx.toggleCheckbox: when - idxFileActive
+- [X] idx.createMissing: when - idxCursorOnFileLine
 
 ## Keys for commands
-- [x] idx.openIdx: when - !idxFileActive - "`i"
-- [x] idx.update: when - idxFileActive - "F5"
-- [x] idx.gotoFile: when - idxCursorOnFileLine - "F2"
-- [x] idx.openFile: when - idxCursorOnFileLine - "alt+F2"
-- [x] idx.closeFile: when - idxCursorOnFileLine - "F4"
-- [x] idx.returnToIdx: when - !idxFileActive - "` i"
-- [x] idx.returnToIdxPicker: when - !idxFileActive - "`i"
-- [x] idx.jumpAny: when - idxFileActive - "alt+` i"
-- [x] idx.jumpWithin: when - idxFileActive - "alt+` alt+i"
-- [x] idx.copyProjectUnlisted: when - idxFileActive - "alt+i ctrl+insert"
-- [x] idx.copyProjectUnlistedPicker: when - idxFileActive - "alt+i alt+insert"
-- [x] idx.toggleCheckbox: when - idxFileActive - "insert x"
-- [x] idx.createMissing: when - idxCursorOnFileLine
+- [X] idx.openIdx: when - !idxFileActive - "`i"
+- [X] idx.update: when - idxFileActive - "F5"
+- [X] idx.gotoFile: when - idxCursorOnFileLine - "F2"
+- [X] idx.openFile: when - idxCursorOnFileLine - "alt+F2"
+- [X] idx.closeFile: when - idxCursorOnFileLine - "F4"
+- [X] idx.returnToIdx: when - !idxFileActive - "` i"
+- [X] idx.returnToIdxPicker: when - !idxFileActive - "`i"
+- [X] idx.jumpAny: when - idxFileActive - "alt+` i"
+- [X] idx.jumpWithin: when - idxFileActive - "alt+` alt+i"
+- [X] idx.copyProjectUnlisted: when - idxFileActive - "alt+i ctrl+insert"
+- [X] idx.copyProjectUnlistedPicker: when - idxFileActive - "alt+i alt+insert"
+- [X] idx.toggleCheckbox: when - idxFileActive - "insert x"
+- [X] idx.createMissing: when - idxCursorOnFileLine
 
 ## New Setting
 - [x] Eligable Extensions List
