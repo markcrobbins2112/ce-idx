@@ -152,6 +152,33 @@ function sanitizeFileSpecWord(word: string): string {
 		.replace(/^[\[({"'<]+/g, '');
 }
 
+// Check if nested filespec has a valid existing directory part
+function isValidExplicitPathWithSlashes(token: string, parentPath: string, workspaceRoot: string): boolean {
+	const normalized = token.replace(/\\/g, '/');
+	if (normalized.startsWith('./') || normalized.startsWith('../') || normalized.startsWith('/')) {
+		return true;
+	}
+
+	const lastSlash = normalized.lastIndexOf('/');
+	if (lastSlash === -1) {
+		return true;
+	}
+
+	const dirPart = token.substring(0, lastSlash);
+
+	const targetParentDir = path.resolve(parentPath, dirPart);
+	if (fs.existsSync(targetParentDir) && fs.statSync(targetParentDir).isDirectory()) {
+		return true;
+	}
+
+	const targetWorkspaceDir = path.resolve(workspaceRoot, dirPart);
+	if (fs.existsSync(targetWorkspaceDir) && fs.statSync(targetWorkspaceDir).isDirectory()) {
+		return true;
+	}
+
+	return false;
+}
+
 // Global caching of all files in the workspace (excluding excluded templates)
 let workspaceFilesCache: string[] = [];
 let workspaceFilesCacheTime = 0;
@@ -243,32 +270,26 @@ function getSelectedLinesForSelection(editor: vscode.TextEditor, sel: vscode.Sel
 	const startLine = sel.start.line;
 	const endLine = sel.end.line;
 
-	const lines: number[] = [];
-	for (let l = startLine; l <= endLine; l++) {
-		const lineLength = editor.document.lineAt(l).text.length;
-		
-		let isStartIncluded = false;
-		if (l === startLine) {
-			if (sel.start.character === 0) {
-				isStartIncluded = true;
-			}
-		} else {
-			isStartIncluded = true;
+	if (startLine === endLine) {
+		const lineLength = editor.document.lineAt(startLine).text.length;
+		if (sel.start.character === 0 || sel.end.character >= lineLength) {
+			return [startLine];
 		}
-
-		let isEndIncluded = false;
-		if (l === endLine) {
-			if (sel.end.character >= lineLength) {
-				isEndIncluded = true;
-			}
-		} else {
-			isEndIncluded = true;
-		}
-
-		if (isStartIncluded && isEndIncluded) {
-			lines.push(l);
-		}
+		return [];
 	}
+
+	const lines: number[] = [];
+	lines.push(startLine);
+
+	for (let l = startLine + 1; l < endLine; l++) {
+		lines.push(l);
+	}
+
+	const endLineLength = editor.document.lineAt(endLine).text.length;
+	if (sel.end.character >= endLineLength) {
+		lines.push(endLine);
+	}
+
 	return lines;
 }
 
@@ -511,7 +532,22 @@ async function parseIdxMarkdown(documentText: string, workspaceRoot: string, ope
 
 			const ext = path.extname(cleaned).substring(1).toLowerCase();
 			const isEligibleOrCommonExt = eligibleExts.includes(ext) || ['png', 'jpg', 'jpeg', 'gif', 'svg', 'css', 'html', 'less', 'scss', 'yml', 'yaml', 'toml', 'xml', 'ini', 'cfg', 'conf', 'sh', 'bash', 'zsh', 'bat', 'cmd', 'ps1', 'py', 'rb', 'pl', 'pm', 'php', 'aspx', 'jsp', 'c', 'cpp', 'h', 'hpp', 'cs', 'java', 'kt', 'kts', 'swift', 'rs', 'go', 'lock', 'env', 'gitignore'].includes(ext);
-			const isExplicitPath = cleaned.includes('/') || cleaned.includes('\\') || cleaned.endsWith('.*') || cleaned.startsWith('.') || (cleaned.includes('.') && isEligibleOrCommonExt);
+			
+			let isExplicitPath = cleaned.includes('/') || cleaned.includes('\\') || cleaned.endsWith('.*') || cleaned.startsWith('.') || (cleaned.includes('.') && isEligibleOrCommonExt);
+
+			if (isExplicitPath && (cleaned.includes('/') || cleaned.includes('\\'))) {
+				let parentFolder = undefined;
+				for (let idx = folderStack.length - 1; idx >= 0; idx--) {
+					if (folderStack[idx].indentation < indentation) {
+						parentFolder = folderStack[idx];
+						break;
+					}
+				}
+				const parentPath = parentFolder ? parentFolder.resolvedPath : workspaceRoot;
+				if (!isValidExplicitPathWithSlashes(cleaned, parentPath, workspaceRoot)) {
+					isExplicitPath = false;
+				}
+			}
 
 			const { matchedPaths } = await resolveFileSpec(cleaned, indentation, folderStack, workspaceRoot, allWorkspaceFiles, eligibleExts);
 
@@ -629,6 +665,7 @@ class GutterDecorationManager {
 	private greenDecorationType: vscode.TextEditorDecorationType;
 	private whiteSquareDecorationType: vscode.TextEditorDecorationType;
 	private greenSquareDecorationType: vscode.TextEditorDecorationType;
+	private blankDecorationType: vscode.TextEditorDecorationType;
 	private updateTimeout: NodeJS.Timeout | undefined;
 
 	private fullpathStyle: vscode.TextEditorDecorationType;
@@ -675,6 +712,11 @@ class GutterDecorationManager {
 		const greenUri = vscode.Uri.parse(`data:image/svg+xml;base64,${greenSvg}`);
 		const whiteSquareUri = vscode.Uri.parse(`data:image/svg+xml;base64,${whiteSquareSvg}`);
 		const greenSquareUri = vscode.Uri.parse(`data:image/svg+xml;base64,${greenSquareSvg}`);
+
+		const blankSvg = Buffer.from(
+			`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"></svg>`
+		).toString('base64');
+		const blankUri = vscode.Uri.parse(`data:image/svg+xml;base64,${blankSvg}`);
 
 		this.blueDecorationType = vscode.window.createTextEditorDecorationType({
 			glyphMarginIconPath: blueUri,
@@ -731,6 +773,17 @@ class GutterDecorationManager {
 			}
 		} as any);
 
+		this.blankDecorationType = vscode.window.createTextEditorDecorationType({
+			glyphMarginIconPath: blankUri,
+			glyphMarginIconSize: 'contain',
+			before: {
+				contentIconPath: blankUri,
+				margin: '0 8px 0 0',
+				width: '12px',
+				height: '12px'
+			}
+		} as any);
+
 		// Filespec colors decoration types
 		this.fullpathStyle = vscode.window.createTextEditorDecorationType({ color: '#ffffff' });
 		this.relativepathStyle = vscode.window.createTextEditorDecorationType({ color: '#d1d5db' });
@@ -768,6 +821,7 @@ class GutterDecorationManager {
 			editor.setDecorations(this.greenDecorationType, []);
 			editor.setDecorations(this.whiteSquareDecorationType, []);
 			editor.setDecorations(this.greenSquareDecorationType, []);
+			editor.setDecorations(this.blankDecorationType, []);
 			editor.setDecorations(this.fullpathStyle, []);
 			editor.setDecorations(this.relativepathStyle, []);
 			editor.setDecorations(this.filenameonlyStyle, []);
@@ -844,11 +898,20 @@ class GutterDecorationManager {
 			}
 		}
 
+		const filespecLineIndices = new Set<number>(fileLines.map(fl => fl.lineIndex));
+		const blankRanges: vscode.Range[] = [];
+		for (let l = 0; l < document.lineCount; l++) {
+			if (!filespecLineIndices.has(l)) {
+				blankRanges.push(new vscode.Range(l, 0, l, 0));
+			}
+		}
+
 		editor.setDecorations(this.blueDecorationType, blueRanges);
 		editor.setDecorations(this.whiteDecorationType, whiteRanges);
 		editor.setDecorations(this.greenDecorationType, greenRanges);
 		editor.setDecorations(this.whiteSquareDecorationType, whiteSquareRanges);
 		editor.setDecorations(this.greenSquareDecorationType, greenSquareRanges);
+		editor.setDecorations(this.blankDecorationType, blankRanges);
 
 		editor.setDecorations(this.fullpathStyle, fullpathRanges);
 		editor.setDecorations(this.relativepathStyle, relativepathRanges);
@@ -865,6 +928,7 @@ class GutterDecorationManager {
 		this.greenDecorationType.dispose();
 		this.whiteSquareDecorationType.dispose();
 		this.greenSquareDecorationType.dispose();
+		this.blankDecorationType.dispose();
 
 		this.fullpathStyle.dispose();
 		this.relativepathStyle.dispose();
@@ -2615,28 +2679,39 @@ async function setKeybindingsCommand() {
 	}
 
 	const Cmc_ = CommandMetadataContainer;
-	const maxKeyLen = Math.max("Keys".length, ...defaultKeybindings.map(kb => { return (kb.key || '').length; }));
-	const maxCmdLen = Math.max("Command Name".length, ...defaultKeybindings.map(kb => { return kb.command.length; }));
-	const maxDescLen = Math.max("Command Description".length, ...defaultKeybindings.map(kb => { return (Cmc_.descriptions[kb.command] || '').length; }));
-	const maxWhenLen = Math.max("When".length, ...defaultKeybindings.map(kb => { return (kb.when || 'always').length; }));
 
-	const pad = (str: string, width: number) => {
-		return str + " ".repeat(Math.max(0, width - str.length));
-	};
+	const sortedKeybindings = [...defaultKeybindings].sort((a, b) => {
+		const whenA = a.when || "always";
+		const whenB = b.when || "always";
+		if (whenA !== whenB) {
+			return whenA.localeCompare(whenB);
+		}
+		return a.command.localeCompare(b.command);
+	});
 
-	const qpItems = defaultKeybindings.map(kb => {
+	const qpItems: (vscode.QuickPickItem & { keybinding?: any })[] = [];
+	let currentWhen: string | null = null;
+
+	for (const kb of sortedKeybindings) {
+		const whenStr = kb.when || "always";
+		if (whenStr !== currentWhen) {
+			currentWhen = whenStr;
+			qpItems.push({
+				label: currentWhen,
+				kind: vscode.QuickPickItemKind.Separator
+			});
+		}
+
 		const matches = currentCustomKeys.some(ck => { return ck.command === kb.command && ck.key === kb.key; });
-		const kStr = pad(kb.key || '(none)', maxKeyLen);
-		const cStr = pad(kb.command, maxCmdLen);
-		const dStr = pad(Cmc_.descriptions[kb.command] || '', maxDescLen);
-		const wStr = pad(kb.when || 'always', maxWhenLen);
 
-		return {
-			label: `${kStr}  |  ${cStr}  |  ${dStr}  |  ${wStr}`,
+		qpItems.push({
+			label: kb.key || "(none)",
+			description: Cmc_.descriptions[kb.command] || "",
+			detail: kb.command,
 			picked: matches,
 			keybinding: kb
-		};
-	});
+		} as any);
+	}
 
 	const selected = await vscode.window.showQuickPick(qpItems, {
 		placeHolder: "Select keybindings to write to global User keybindings.json:",
@@ -2742,13 +2817,13 @@ async function collectEditorsCommand() {
 	for (const item of selectedItems) {
 		const ot = item.tabInfo;
 		try {
-			const doc = await vscode.workspace.openTextDocument(ot.docUri);
-			await vscode.window.showTextDocument(doc, {
-				viewColumn: targetColumn,
-				preserveFocus: true
-			});
 			if (ot.tab.group.viewColumn !== targetColumn) {
+				const doc = await vscode.workspace.openTextDocument(ot.docUri);
 				await vscode.window.tabGroups.close(ot.tab);
+				await vscode.window.showTextDocument(doc, {
+					viewColumn: targetColumn,
+					preserveFocus: true
+				});
 			}
 		} catch (e) {}
 	}
@@ -2874,13 +2949,8 @@ async function getSelectedFileLines(): Promise<FileLine[]> {
 
 	const fileLines = await parseIdxMarkdown(editor.document.getText(), workspaceRoot, new Set());
 
-	const selections = editor.selections;
-	const selectedLines = new Set<number>();
-	for (const sel of selections) {
-		for (let line = sel.start.line; line <= sel.end.line; line++) {
-			selectedLines.add(line);
-		}
-	}
+	const selectedLinesList = getSelectedLines(editor);
+	const selectedLines = new Set<number>(selectedLinesList);
 
 	return fileLines.filter(fl => selectedLines.has(fl.lineIndex));
 }

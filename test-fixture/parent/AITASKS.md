@@ -17,8 +17,8 @@
 - [X] with open files
   - [X] multiSelect picker listing open editors
     - [X] with selected files, a new picker listing groups to move selected editors to, or new group
-      - [ ] FAIL: editors were copied, not moved
-        - [ ] still does copy
+      - [x] FAIL: editors were copied, not moved
+        - [x] still does copy
 
 ### [X] Close all markdown editors
 - [X] when idx.md is active :UNDO
@@ -40,9 +40,9 @@
 ## [X] Use Glyph Margin instead of Gutter for icons [abort]
 - [X] change the visibilty of the Glyph Margin to true automatically
 
-## [ ] NEW: Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
-- [ ] FAIL: lines with no characters did not get a blank :before
-  - [ ] try this again and don't lose the working icon functionality
+## [x] NEW: Lines in idx.md should have a :before icon, if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
+- [x] FAIL: lines with no characters did not get a blank :before
+  - [x] try this again and don't lose the working icon functionality
 
 ## [X] Line icon
 - [X] seems to get stuck on green, especially when launched from idx.md
@@ -55,18 +55,18 @@
   - [X] command description
   - [X] when
 
-## [ ] Bad filespace detection
+## [x] Bad filespace detection
 - example
 	- '| ` i               | idx.openIdx                   | Open/Edit Index File                     | !idxFileActive      |'
 	- detection on Open/Edit
-  	- filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
+  	- [x] filter - unless there is an Open dir with a Edit subdir, they should not be recognized as a filespec
 
-## [ ] listing to set keybindings
-- [ ] NEW: format the commands
-  - separator: when [orderby when, then command name]
-  - label: [key]
-  - description: command description
-  - detail: command name
+## [x] listing to set keybindings
+- [x] NEW: format the commands
+  - [x] separator: when [orderby when, then command name]
+  - [x] label: [key]
+  - [x] description: command description
+  - [x] detail: command name
 
 ## Change Bindings
 - [X] idx.returnToIdx: ` r (!idxFileActive)
@@ -136,17 +136,17 @@
 - [X] put a list here of commands that are multi cursor
 - [X] put a list here of commands that are not multi cursor
 
-## [ ] Operate on selected lines
-- [ ] for every filespec in selection, make these commands available
-  - [ ] FAIL: openFile
-    - [ ] should ensure all the files in the selected filespecs are open
-    - [ ] observed only opening the file where the cursor was at
-  - [ ] FAIL: closeFile
-    - [ ] should ensure all the files in the selected filespecs are closed
-    - [ ] observed only closing the file where the cursor was at
-  - [ ] FAIL: gotoFile - open the files and offer a picker for which file to activate
-    - [ ] should offer a picker with open files at the top
-    - [ ] observed only opening the file where the cursor was at
+## [x] Operate on selected lines
+- [x] for every filespec in selection, make these commands available
+  - [x] FAIL: openFile
+    - [x] should ensure all the files in the selected filespecs are open
+    - [x] observed only opening the file where the cursor was at
+  - [x] FAIL: closeFile
+    - [x] should ensure all the files in the selected filespecs are closed
+    - [x] observed only closing the file where the cursor was at
+  - [x] FAIL: gotoFile - open the files and offer a picker for which file to activate
+    - [x] should offer a picker with open files at the top
+    - [x] observed only opening the file where the cursor was at
   - [x] checkCheckbox - picker to choose whether to use X or x
   - [x] uncheckCheckbox
   - [x] removeCheckboxes

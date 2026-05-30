@@ -2,6 +2,38 @@
 <!-- markdownlint-disable MD024 -->
 # AI Development Log - Incredibly Desirable Experience (IDX)
 
+## [2026-05-30T10:00:00Z]
+
+### 🎯 Primary Goals & Requirements
+- Fix the issue where editors are copied rather than moved in the `idx.collectEditors` command.
+- Implement blank visual alignment icons for lines with no filespecs (including lines with no characters).
+- Fix "Bad filespace detection" by filtering out text descriptions with slashes unless they reference an existing directory structure.
+- Format the Keybindings listing inside the QuickPick using native VS Code separators grouped by `when` context, following specific formatting rules.
+- Fix multi-line selections so that `openFile`, `closeFile`, and `gotoFile` operate on all selected lines of the document.
+
+---
+
+### 🛠️ Completed Changes in this Session
+- **Corrected Tab Moving in Collect Editors**:
+  - Modified `collectEditorsCommand` to close the original tab before opening the document in the new column.
+- **Implemented Document-wide Blank Icon Alignment**:
+  - Dynamically added `blankDecorationType` to every line of `idx.md` that does not contain a filespec, guaranteeing that lines with no characters or plain text align perfectly with filespec lines.
+- **Added Bad Filespace Verification**:
+  - Created `isValidExplicitPathWithSlashes` to verify that a candidate path's directory portion actually exists before classifying it as an explicit filespec, avoiding false positives on textual phrases like `Open/Edit`.
+- **Enhanced Keybinding Listing UI Layout**:
+  - Redesigned `setKeybindingsCommand` to list keys as the label, descriptions as the description, command names as the detail, and group them beautifully with native QuickPick separators based on the sorted `when` context values.
+- **Unified Multi-Line Selection Ranges**:
+  - Unified `getSelectedFileLines` is now connected directly to the selection boundary resolver `getSelectedLines(editor)`, enabling `openFile`, `closeFile`, and `gotoFile` to work flawlessly across multi-line configurations.
+- **Modified files**:
+  - `/src/extension.ts`
+  - `/AITASKS.md`
+  - `/AILOG.md`
+
+---
+
+### 🚀 Recommended Next Steps
+- Open the custom index and verify gutter and keybinding presentation in the development sandbox.
+
 ## [2026-05-30T08:55:00Z]
 
 ### 🎯 Primary Goals & Requirements
