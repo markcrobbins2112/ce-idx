@@ -3,6 +3,31 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
+
+// Reusable line highlight decoration using a theme-aware background color
+const pickerLineHighlightDecoration0 = vscode.window.createTextEditorDecorationType({
+	isWholeLine: true,
+	backgroundColor: new vscode.ThemeColor('editor.rangeHighlightBackground'),
+	// Optional visual anchors: matches VS Code's native find match style boundary
+	overviewRulerColor: new vscode.ThemeColor('editorOverviewRuler.rangeHighlightForeground'),
+	overviewRulerLane: vscode.OverviewRulerLane.Full
+});
+// A high-visibility highlight configuration that bypasses theme restrictions
+const pickerLineHighlightDecoration = vscode.window.createTextEditorDecorationType({
+	isWholeLine: true,
+	// transclucent fallback value that works on both dark and light interfaces
+	backgroundColor: 'rgba(255, 235, 59, 0.18)',
+
+	// Gutter accent lines can force immediate structural drawing
+	gutterIconPath: undefined,
+	overviewRulerLane: vscode.OverviewRulerLane.Full,
+
+	// A thick border block drawn on the left side of the row line numbers
+	borderWidth: '0 0 0 4px',
+	borderStyle: 'solid',
+	borderColor: '#ffeb3b', // Bright amber/yellow highlight strip accent
+});
+
 //#region _consts
 // Define the valid tags we are matching
 const TAGS = ['NEW:', 'OK:', 'FIXED:', 'FAIL:', 'BUG:', 'DONE:'] as const;
@@ -566,11 +591,11 @@ function doesFileLineMatchCurrentPath(fl: FileLine, currentPath: string, eligibl
  * Categorization helper using the renamed FileLineShort model mapping
  */
 function getFilespecTypeGroup(fl: FileLineShort): string {
-    if (fl.isFolder) return 'Folders';
-    if (fl.filepath.includes('*')) return 'Wildcards (Globs)';
-    if (fl.isMultiMatch) return 'Ambiguous (Multi-Match)';
-    if (!fl.exists) return 'Broken Paths (Missing Files)';
-    return 'Valid Files';
+	if (fl.isFolder) return 'Folders';
+	if (fl.filepath.includes('*')) return 'Wildcards (Globs)';
+	if (fl.isMultiMatch) return 'Ambiguous (Multi-Match)';
+	if (!fl.exists) return 'Broken Paths (Missing Files)';
+	return 'Valid Files';
 }
 
 /**
@@ -1138,7 +1163,7 @@ class GutterDecorationManager {
 			vscode.workspace.getConfiguration('editor').update('glyphMargin', true, vscode.ConfigurationTarget.Workspace);
 			vscode.workspace.getConfiguration('editor', { languageId: 'markdown' }).update('glyphMargin', true, vscode.ConfigurationTarget.Global);
 			vscode.workspace.getConfiguration('editor', { languageId: 'markdown' }).update('glyphMargin', true, vscode.ConfigurationTarget.Workspace);
-		} catch (e) {}
+		} catch (e) { }
 
 		const blueSvg = Buffer.from(
 			`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#3b82f6" /></svg>`
@@ -1767,11 +1792,18 @@ async function showIdxLinePicker(idxDocument: vscode.TextDocument) {
 			const lineIndex = activeItems[0].lineIndex;
 			const revealRange = new vscode.Range(lineIndex, 0, lineIndex, 0);
 			idxEditor.revealRange(revealRange, vscode.TextEditorRevealType.InCenter);
+
+			// Highlight active tracking line inside your idx.md editor instance
+			const decorationRange = new vscode.Range(lineIndex, 0, lineIndex, 0);
+			idxEditor.setDecorations(pickerLineHighlightDecoration, [decorationRange]);
 		}
 	});
-
 	quickPick.onDidAccept(() => {
 		const selected = quickPick.selectedItems[0];
+
+		// Flush out trailing decoration updates safely
+		idxEditor.setDecorations(pickerLineHighlightDecoration, []);
+
 		if (selected && selected.lineIndex !== undefined) {
 			const line = selected.lineIndex;
 			const pos = new vscode.Position(line, 0);
@@ -1782,7 +1814,10 @@ async function showIdxLinePicker(idxDocument: vscode.TextDocument) {
 		quickPick.hide();
 	});
 
-	quickPick.onDidHide(() => quickPick.dispose());
+	quickPick.onDidHide(() => {
+		idxEditor.setDecorations(pickerLineHighlightDecoration, []);
+		quickPick.dispose();
+	});
 	quickPick.show();
 }
 //#endregion _pickers
@@ -1923,17 +1958,25 @@ export function registerFileMentionsCommand(context: vscode.ExtensionContext) {
 		quickPick.placeholder = `Mentions matching filespec '${targetPathToken}' (${matchingMentions.length} found)`;
 
 		quickPick.onDidChangeActive(items => {
-			//  CORRECT: Safely check the first element of the active items array
 			if (items.length > 0 && items[0].targetLine !== undefined) {
 				const targetLine = items[0].targetLine;
 				const targetRange = new vscode.Range(targetLine, 0, targetLine, 0);
+
+				// 1. Reveal line position in the center of the viewport
 				editor.revealRange(targetRange, vscode.TextEditorRevealType.InCenter);
+
+				// 2. Apply background color highlight decoration to the active line
+				const decorationRange = new vscode.Range(targetLine, 0, targetLine, 0);
+				editor.setDecorations(pickerLineHighlightDecoration, [decorationRange]);
 			}
 		});
 
 		quickPick.onDidAccept(() => {
 			const selection = quickPick.selectedItems[0];
 			quickPick.hide();
+
+			// Clear decorations before moving the permanent cursor
+			editor.setDecorations(pickerLineHighlightDecoration, []);
 
 			if (selection && selection.targetLine !== undefined) {
 				const targetLine = selection.targetLine;
@@ -1943,7 +1986,12 @@ export function registerFileMentionsCommand(context: vscode.ExtensionContext) {
 			}
 		});
 
-		quickPick.onDidHide(() => quickPick.dispose());
+		quickPick.onDidHide(() => {
+			// ALWAYS clear lines decoration if the picker is dismissed or cancelled
+			editor.setDecorations(pickerLineHighlightDecoration, []);
+			quickPick.dispose();
+		});
+
 		quickPick.show();
 	});
 
@@ -2079,47 +2127,37 @@ export function registerCheckboxTagJumpCommand(context: vscode.ExtensionContext)
 		secondQuickPick.canSelectMany = true;
 		secondQuickPick.placeholder = 'Select target check lines (Use Search to match labels/descriptions)';
 
-		// Track user's focus cursor line dynamically to scroll the active text area
-		secondQuickPick.onDidChangeActive(items => {
-			if (items.length > 0 && items[0].itemRef) {
-				const targetLine = items[0].itemRef.lineNumber;
-				const targetRange = new vscode.Range(targetLine, 0, targetLine, 0);
-				editor.revealRange(targetRange, vscode.TextEditorRevealType.InCenter);
-			}
-		});
+      // Track user's focus cursor line dynamically to scroll the active text area
+        secondQuickPick.onDidChangeActive(items => {
+            if (items.length > 0 && items[0].itemRef) {
+                const targetLine = items[0].itemRef.lineNumber;
+                const targetRange = new vscode.Range(targetLine, 0, targetLine, 0);
 
-		secondQuickPick.onDidAccept(async () => {
-			const finalChosenItems = secondQuickPick.selectedItems.filter(i => i.itemRef !== undefined);
-			secondQuickPick.hide();
+                // Scroll layout
+                editor.revealRange(targetRange, vscode.TextEditorRevealType.InCenter);
 
-			if (finalChosenItems.length === 0) return;
+                // Paint targeted row line background
+                const decorationRange = new vscode.Range(targetLine, 0, targetLine, 0);
+                editor.setDecorations(pickerLineHighlightDecoration, [decorationRange]);
+            }
+        });
 
-			// 4. Offer choice picker actions on structural validation
-			const actionChoices = [
-				{ label: 'Goto Line', description: 'Jump cursor to the chosen line item' },
-				{ label: 'Copy Lines', description: 'Copy structural checkbox row texts directly onto workspace clipboard' }
-			];
+        secondQuickPick.onDidAccept(async () => {
+            const finalChosenItems = secondQuickPick.selectedItems.filter(i => i.itemRef !== undefined);
+            secondQuickPick.hide();
 
-			const finalAction = await vscode.window.showQuickPick(actionChoices, {
-				placeHolder: 'Choose execution action for selections'
-			});
+            // Wipe temporary visual decorations
+            editor.setDecorations(pickerLineHighlightDecoration, []);
 
-			if (!finalAction) return;
+            if (finalChosenItems.length === 0) return;
 
-			if (finalAction.label === 'Goto Line') {
-				// Focus on the first element selected
-				const targetLine = finalChosenItems[0].itemRef!.lineNumber;
-				const position = new vscode.Position(targetLine, 0);
-				editor.selection = new vscode.Selection(position, position);
-				editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-			} else if (finalAction.label === 'Copy Lines') {
-				const aggregatedText = finalChosenItems.map(i => i.itemRef!.lineText).join('\n');
-				await vscode.env.clipboard.writeText(aggregatedText);
-				vscode.window.showInformationMessage(`Copied ${finalChosenItems.length} lines to your clipboard.`);
-			}
-		});
+            // ... (keep your choice action logic picker: 'Goto Line' / 'Copy Lines')
+        });
 
-		secondQuickPick.onDidHide(() => secondQuickPick.dispose());
+        secondQuickPick.onDidHide(() => {
+            editor.setDecorations(pickerLineHighlightDecoration, []);
+            secondQuickPick.dispose();
+        });
 		secondQuickPick.show();
 	});
 
@@ -2129,130 +2167,130 @@ export function registerCheckboxTagJumpCommand(context: vscode.ExtensionContext)
 
 //#region _commands3
 export function registerNewFilespecCommand(context: vscode.ExtensionContext) {
-    const disposable = vscode.commands.registerCommand('idx.newFilespec', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return;
-        }
+	const disposable = vscode.commands.registerCommand('idx.newFilespec', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return;
+		}
 
-        const document = editor.document;
-        const selection = editor.selection;
-        const currentLine = document.lineAt(selection.active.line);
-        const currentText = currentLine.text;
+		const document = editor.document;
+		const selection = editor.selection;
+		const currentLine = document.lineAt(selection.active.line);
+		const currentText = currentLine.text;
 
-        // 1. Gather workspace files (skipping node_modules)
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            vscode.window.showInformationMessage('No workspace folder open.');
-            return;
-        }
+		// 1. Gather workspace files (skipping node_modules)
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders) {
+			vscode.window.showInformationMessage('No workspace folder open.');
+			return;
+		}
 
-        const fileUris = await vscode.workspace.findFiles('**/*', '**/node_modules/**');
-        const fileItems: (vscode.QuickPickItem & { relativePath: string })[] = fileUris.map(uri => {
-            const relativePath = vscode.workspace.asRelativePath(uri, false);
-            return {
-                label: path.basename(relativePath),
-                detail: relativePath,
-                relativePath: relativePath
-            };
-        });
+		const fileUris = await vscode.workspace.findFiles('**/*', '**/node_modules/**');
+		const fileItems: (vscode.QuickPickItem & { relativePath: string })[] = fileUris.map(uri => {
+			const relativePath = vscode.workspace.asRelativePath(uri, false);
+			return {
+				label: path.basename(relativePath),
+				detail: relativePath,
+				relativePath: relativePath
+			};
+		});
 
-        // 2. Setup the dynamic File Picker
-        const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem & { relativePath?: string }>();
-        quickPick.placeholder = 'Select a file to insert';
+		// 2. Setup the dynamic File Picker
+		const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem & { relativePath?: string }>();
+		quickPick.placeholder = 'Select a file to insert';
 
-        const selectManyItem = { label: '$(list-unordered) [Select Many Options]', description: 'Click to select multiple files' };
-        quickPick.items = [selectManyItem, ...fileItems];
+		const selectManyItem = { label: '$(list-unordered) [Select Many Options]', description: 'Click to select multiple files' };
+		quickPick.items = [selectManyItem, ...fileItems];
 
-        let selectedFiles: string[] = [];
+		let selectedFiles: string[] = [];
 
-        quickPick.onDidAccept(async () => {
-            const selected = quickPick.selectedItems;
+		quickPick.onDidAccept(async () => {
+			const selected = quickPick.selectedItems;
 
-            // Handle "Select Many" toggle mode
-            if (selected.length === 1 && selected[0].label === selectManyItem.label) {
-                quickPick.canSelectMany = true;
-                quickPick.items = fileItems;
-                quickPick.placeholder = 'Select multiple files, then click OK or press Enter';
-                return;
-            }
+			// Handle "Select Many" toggle mode
+			if (selected.length === 1 && selected[0].label === selectManyItem.label) {
+				quickPick.canSelectMany = true;
+				quickPick.items = fileItems;
+				quickPick.placeholder = 'Select multiple files, then click OK or press Enter';
+				return;
+			}
 
-            if (selected.length === 0) {
-                quickPick.hide();
-                return;
-            }
+			if (selected.length === 0) {
+				quickPick.hide();
+				return;
+			}
 
-            selectedFiles = selected
-                .filter(item => item.relativePath !== undefined)
-                .map(item => item.relativePath!);
+			selectedFiles = selected
+				.filter(item => item.relativePath !== undefined)
+				.map(item => item.relativePath!);
 
-            quickPick.hide();
+			quickPick.hide();
 
-            // 3. Setup Second Picker (Identical to New Checkbox Line)
-            const indentMatch = currentText.match(/^(\s*)/);
-            const indentation = indentMatch ? indentMatch[0] : '';
+			// 3. Setup Second Picker (Identical to New Checkbox Line)
+			const indentMatch = currentText.match(/^(\s*)/);
+			const indentation = indentMatch ? indentMatch[0] : '';
 
-            const headerMatch = currentText.trim().match(/^(#+)\s/);
-            const currentHeaderLevel = headerMatch ? headerMatch[1].length : 0;
+			const headerMatch = currentText.trim().match(/^(#+)\s/);
+			const currentHeaderLevel = headerMatch ? headerMatch[1].length : 0;
 
-            const prefixItems: (vscode.QuickPickItem & { prefix: string })[] = [];
+			const prefixItems: (vscode.QuickPickItem & { prefix: string })[] = [];
 
-            if (currentHeaderLevel > 0) {
-                prefixItems.push({
-                    label: 'Same level header',
-                    description: '#'.repeat(currentHeaderLevel),
-                    prefix: '#'.repeat(currentHeaderLevel) + ' '
-                });
-                prefixItems.push({
-                    label: 'Parent level header',
-                    description: '#'.repeat(Math.max(1, currentHeaderLevel - 1)),
-                    prefix: '#'.repeat(Math.max(1, currentHeaderLevel - 1)) + ' '
-                });
-                prefixItems.push({
-                    label: 'Sub level header',
-                    description: '#'.repeat(currentHeaderLevel + 1),
-                    prefix: '#'.repeat(currentHeaderLevel + 1) + ' '
-                });
-            } else {
-                prefixItems.push({ label: 'Same level header', description: '###', prefix: '### ' });
-                prefixItems.push({ label: 'Parent level header', description: '##', prefix: '## ' });
-                prefixItems.push({ label: 'Sub level header', description: '####', prefix: '#### ' });
-            }
+			if (currentHeaderLevel > 0) {
+				prefixItems.push({
+					label: 'Same level header',
+					description: '#'.repeat(currentHeaderLevel),
+					prefix: '#'.repeat(currentHeaderLevel) + ' '
+				});
+				prefixItems.push({
+					label: 'Parent level header',
+					description: '#'.repeat(Math.max(1, currentHeaderLevel - 1)),
+					prefix: '#'.repeat(Math.max(1, currentHeaderLevel - 1)) + ' '
+				});
+				prefixItems.push({
+					label: 'Sub level header',
+					description: '#'.repeat(currentHeaderLevel + 1),
+					prefix: '#'.repeat(currentHeaderLevel + 1) + ' '
+				});
+			} else {
+				prefixItems.push({ label: 'Same level header', description: '###', prefix: '### ' });
+				prefixItems.push({ label: 'Parent level header', description: '##', prefix: '## ' });
+				prefixItems.push({ label: 'Sub level header', description: '####', prefix: '#### ' });
+			}
 
-            prefixItems.push({ label: 'Bullet', description: '-', prefix: '- ' });
-            prefixItems.push({ label: 'Empty', description: 'No prefix', prefix: '' });
+			prefixItems.push({ label: 'Bullet', description: '-', prefix: '- ' });
+			prefixItems.push({ label: 'Empty', description: 'No prefix', prefix: '' });
 
-            const selectedPrefix = await vscode.window.showQuickPick(prefixItems, {
-                placeHolder: 'Select a prefix for your new checkbox line',
-            });
+			const selectedPrefix = await vscode.window.showQuickPick(prefixItems, {
+				placeHolder: 'Select a prefix for your new checkbox line',
+			});
 
-            if (!selectedPrefix) {
-                return; // User cancelled
-            }
+			if (!selectedPrefix) {
+				return; // User cancelled
+			}
 
-            // 4. Construct text block containing checkboxes and file paths
-            const textToInsert = selectedFiles.map((relPath, index) => {
-                // Format: [Indentation][Selected Prefix][Checkbox Option][File Path]
-                const lineContent = `${indentation}${selectedPrefix.prefix}[ ] ${relPath}`;
+			// 4. Construct text block containing checkboxes and file paths
+			const textToInsert = selectedFiles.map((relPath, index) => {
+				// Format: [Indentation][Selected Prefix][Checkbox Option][File Path]
+				const lineContent = `${indentation}${selectedPrefix.prefix}[ ] ${relPath}`;
 
-                // If it is the first file, don't double up on the current cursor line's indentation
-                if (index === 0) {
-                    return `${selectedPrefix.prefix}[ ] ${relPath}`;
-                }
-                return lineContent;
-            }).join('\n');
+				// If it is the first file, don't double up on the current cursor line's indentation
+				if (index === 0) {
+					return `${selectedPrefix.prefix}[ ] ${relPath}`;
+				}
+				return lineContent;
+			}).join('\n');
 
-            // 5. Insert text block into editor at current cursor position
-            await editor.edit(editBuilder => {
-                editBuilder.insert(selection.active, textToInsert);
-            });
-        });
+			// 5. Insert text block into editor at current cursor position
+			await editor.edit(editBuilder => {
+				editBuilder.insert(selection.active, textToInsert);
+			});
+		});
 
-        quickPick.onDidHide(() => quickPick.dispose());
-        quickPick.show();
-    });
+		quickPick.onDidHide(() => quickPick.dispose());
+		quickPick.show();
+	});
 
-    context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable);
 }
 //#endregion _commands3
 
@@ -2741,7 +2779,7 @@ async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: s
 						const absPath = path.resolve(workspaceRoot, chosenPathPart);
 						const doc = await vscode.workspace.openTextDocument(absPath);
 						await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-					} catch (e) {}
+					} catch (e) { }
 				}
 			}
 			return;
@@ -2811,7 +2849,7 @@ async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: s
 					const absPath = path.resolve(workspaceRoot, chosenPathPart);
 					const doc = await vscode.workspace.openTextDocument(absPath);
 					await vscode.window.showTextDocument(doc, { preserveFocus: false, preview: false });
-				} catch (e) {}
+				} catch (e) { }
 				return;
 			}
 		}
@@ -2905,7 +2943,7 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 						try {
 							const doc = await vscode.workspace.openTextDocument(s.resolvedPath);
 							await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
-						} catch (e) {}
+						} catch (e) { }
 					}
 				}
 			} else {
@@ -3022,7 +3060,7 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 					const doc = await vscode.workspace.openTextDocument(item.resolvedPath);
 					await vscode.window.showTextDocument(doc, { preserveFocus: true, preview: false });
 					openedDocs.push(doc);
-				} catch (e) {}
+				} catch (e) { }
 			}
 			vscode.window.showInformationMessage(`Opened ${openedDocs.length} file(s) from selection.`);
 		}
@@ -3061,7 +3099,7 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 			try {
 				const doc = await vscode.workspace.openTextDocument(choice.resolvedPath);
 				await vscode.window.showTextDocument(doc, { preserveFocus: false, preview: false });
-			} catch (e) {}
+			} catch (e) { }
 		}
 	}
 }
@@ -4111,9 +4149,9 @@ async function collectEditorsCommand() {
 						viewColumn: targetCol,
 						preserveFocus: true
 					});
-				} catch (e) {}
+				} catch (e) { }
 			}
-		} catch (e) {}
+		} catch (e) { }
 	} else {
 		for (const item of selectedItems) {
 			const ot = item.tabInfo;
@@ -4126,7 +4164,7 @@ async function collectEditorsCommand() {
 						preserveFocus: true
 					});
 				}
-			} catch (e) {}
+			} catch (e) { }
 		}
 	}
 
@@ -4134,7 +4172,7 @@ async function collectEditorsCommand() {
 		try {
 			const doc = await vscode.workspace.openTextDocument(originalDocUri);
 			await vscode.window.showTextDocument(doc, { preserveFocus: false });
-		} catch (e) {}
+		} catch (e) { }
 	}
 
 	vscode.window.showInformationMessage(`Moved ${selectedItems.length} editor(s) to selected group.`);
@@ -4223,7 +4261,7 @@ async function closeAllMarkdownEditorsCommand() {
 						try {
 							await tabGroups.close(tab);
 							closedCount++;
-						} catch (e) {}
+						} catch (e) { }
 					}
 				}
 			}
@@ -4238,7 +4276,7 @@ async function closeAllMarkdownEditorsCommand() {
 					try {
 						await tabGroups.close(tab);
 						closedCount++;
-					} catch (e) {}
+					} catch (e) { }
 				}
 			}
 		}

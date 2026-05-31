@@ -7,11 +7,12 @@
 	"author": "markrobbins",
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.74.0"
+		"vscode": "^1.85.0"
 	},
 	"categories": [
 		"Other"
 	],
+	"icon": "icon.jpg",
 	"keywords": [
 		"markdown",
 		"specs",
@@ -20,9 +21,18 @@
 		"wikilink",
 		"docs"
 	],
-	"main": "./dist/extension.cjs",
+	"main": "dist/extension.cjs",
 	"files": [
-		"./dist/extension.cjs"
+		"dist/extension.cjs",
+		"icon.jpg",
+		"README.md",
+		"AILOG.md",
+		"AGENTS.md",
+		"FEATURES.md",
+		"MANUAL.md",
+		"SPEC.md",
+		"TESTING.md",
+		"LICENSE"
 	],
 	"scripts": {
 		"compile": "bun build.js",
@@ -41,6 +51,7 @@
 		"@types/node": "^22.14.0",
 		"@types/source-map-support": "^0.5.10",
 		"@types/vscode": "^1.85.0",
+		"@vscode/vsce": "^3.6.2",
 		"adm-zip": "^0.5.17",
 		"typescript": "~5.8.2"
 	},
@@ -92,7 +103,7 @@
 				"title": "IDX: Checkbox Tag Jump"
 			},
 			{
-				"command": "idx.fileSpec",
+				"command": "idx.newFileSpec",
 				"title": "IDX: New Filespec"
 			},
 			{
@@ -296,6 +307,13 @@
 				]
 			}
 		],
+		"configurationDefaults": {
+			"[markdown]": {
+				"editor.folding": true,
+				"editor.foldingStrategy": "provider",
+				"editor.showFoldingControls": "always"
+			}
+		},
 		"configuration": {
 			"title": "Incredibly Desirable Experience",
 			"properties": {
