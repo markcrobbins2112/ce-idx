@@ -75,10 +75,30 @@
 		"onCommand:idx.pickCommand",
 		"onCommand:idx.copyKeybindings",
 		"onCommand:idx.removeSelectedCheckboxes",
-		"onCommand:idx.addSelectedCheckboxes"
+		"onCommand:idx.addSelectedCheckboxes",
+		"onCommand:idx.newFilespec",
+		"onCommand:idx.checkboxTagJump",
+		"onCommand:idx.fileMentions",
+		"onCommand:idx.newCheckboxLine"
 	],
 	"contributes": {
 		"commands": [
+			{
+				"command": "idx.fileMentions",
+				"title": "IDX: File Mentions"
+			},
+			{
+				"command": "idx.checkboxTagJump",
+				"title": "IDX: Checkbox Tag Jump"
+			},
+			{
+				"command": "idx.fileSpec",
+				"title": "IDX: New Filespec"
+			},
+			{
+				"command": "idx.newCheckboxLine",
+				"title": "IDX: New Checkbox Line"
+			},
 			{
 				"command": "idx.openIdx",
 				"title": "IDX: Go To Index File"
@@ -170,6 +190,26 @@
 		],
 		"keybindings": [
 			{
+				"command": "idx.fileMentions",
+				"key": "alt+` m",
+				"when": "editorTextFocus && idxCursorOnFileLine"
+			},
+			{
+				"command": "idx.checkboxTagJump",
+				"key": "alt+` t",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.newFilespec",
+				"key": "insert f",
+				"when": "idxFileActive"
+			},
+			{
+				"command": "idx.newCheckboxLine",
+				"key": "insert c",
+				"when": "idxFileActive"
+			},
+			{
 				"command": "idx.openIdx",
 				"key": "` i",
 				"when": "!idxFileActive"
@@ -243,6 +283,17 @@
 			{
 				"command": "idx.checkboxTag",
 				"key": "ctrl+alt+shift+f10"
+			}
+		],
+		"languages": [
+			{
+				"id": "markdown",
+				"aliases": [
+					"Markdown"
+				],
+				"extensions": [
+					".md"
+				]
 			}
 		],
 		"configuration": {

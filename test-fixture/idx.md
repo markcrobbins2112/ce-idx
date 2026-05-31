@@ -4,13 +4,121 @@
 <!-- markdownlint-disable MD056 -->
 <!-- markdownlint-disable MD060 -->
 
+# H1
+## H2
+### H3
+
 # IDX
-./.vscode/settings.json
+
+# a filespec
+- local.txt
+- /local.txt
+- ./local.txt
+- C:/local.txt
+- *.txt
+- dirname
+- dirname/subdirname
+-
 
 
+
+// FAIL
+- ./text2.txt
+- ./text3.txt
+- ./text.txt
+- ./text2.txt
+- ./text3.txt
+
+// OK
+- [ ] ./text2.txt
+- [ ] ./text3.txt
+- [ ] ./text.txt
 - [ ] ./text2.txt
 - [ ] ./text3.txt
 
+// on text.txt it starts looking for ./text2.txt
+# ./text2.txt
+# ./text3.txt
+# ./text.txt
+# ./text2.txt
+# ./text3.txt
+
+// on text.txt it starts looking for ./text3.txt
+# [ ] ./text2.txt
+# [ ] ./text3.txt
+# [ ] ./text.txt
+# [ ] ./text2.txt
+# [ ] ./text3.txt
+
+// OK
+- text.txt
+- /text.txt
+- ./text.txt
+- ./sub/text.txt
+
+# valid filespecs
+text.txt
+/text.txt
+\text.txt
+./text.txt
+.\text.txt
+../text.txt
+..\text.txt
+../../text.txt
+..\..\text.txt
+C:/text.txt
+C:\text.txt
+
+\\text.txt
+.\\text.txt
+..\\text.txt
+..\\..\\text.txt
+C:\\text.txt
+
+text.*
+/text.*
+\text.*
+./text.*
+.\text.*
+../text.*
+..\text.*
+../../text.*
+..\..\text.*
+C:/text.*
+C:\text.*
+
+text.tx?
+/text.tx?
+\text.tx?
+./text.tx?
+.\text.tx?
+../text.tx?
+..\text.tx?
+../../text.tx?
+..\..\text.tx?
+C:/text.tx?
+C:\text.tx?
+
+*/**/text.txt
+etc
+
+
+- [ ] text.txt
+- [ ] /text.txt
+- [ ] ./text.txt
+- [ ] ./sub/text.txt
+
+
+# text.txt
+# /text.txt
+# ./text.txt
+# ./sub/text.txt
+
+
+- [ ] ./tex*.txt
+- [ ] ./text2.txt
+# [ ] ./text3.txt
+# [X] ./text.txt
 # [X] ./text2.txt
 # [ ] ./text3.txt
 
@@ -25,6 +133,9 @@
 #./text2.txt
 #./text3.txt
 
+./.vscode/settings.json
+
+
 
 - ./text2.txt
 - ./text3.txt
@@ -33,12 +144,11 @@
 C:\_\__\idx\test-fixture\text2.txt
 ./text6.txt
 
+- [X] NEW: ./text2.txt
+- [X] NEW: ./text3.txt
+NEW:
 - [X] OK: ./text2.txt
 - [X] OK: ./text3.txt
-
-## Keys for commands
-eee
-ee
 
 | Keys               | Command Name                  | Command Description                  | When                                                       |
 | ------------------ | ----------------------------- | ------------------------------------ | ---------------------------------------------------------- |
@@ -64,7 +174,14 @@ ee
 | (none)             | idx.copyKeybindings           | Copy Commands to Clipboard           | always                                                     |
 | (none)             | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes          | always                                                     |
 | (none)             | idx.addSelectedCheckboxes     | Add Checkboxes to Selection          | always                                                     |
+| insert f           | idx.newFilespec               | New Filespec                         | always                                                     |
+| alt+` t            | idx.checkboxTagJump           | Checkbox Tag Jump                    | always                                                     |
+| insert c           | idx.newCheckboxLine           | New Checkbox Line                    | always                                                     |
 
+## Keys for commands
+eee
+ee
+[ ] parent/TESTING.md
 ## Need two context when flags
 
 ## Need new commands

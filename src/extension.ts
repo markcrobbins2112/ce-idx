@@ -3,6 +3,62 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
+//#region _consts
+// Define the valid tags we are matching
+const TAGS = ['NEW:', 'OK:', 'FIXED:', 'FAIL:', 'BUG:', 'DONE:'] as const;
+const CommandMetadataContainer_descriptions = {
+	"idx.openIdx": "Go To Index File",
+	"idx.update": "Update Index File Listings",
+	"idx.gotoFile": "Edit Files",
+	"idx.openFile": "Open Files",
+	"idx.closeFile": "Close Files",
+	"idx.returnToIdx": "Return to Index Location",
+	"idx.returnToIdxPicker": "Return to Index Location Picker",
+	"idx.jumpAny": "Jump to Any File (List All)",
+	"idx.jumpWithin": "Jump Within Index Listings",
+	"idx.copyProjectUnlisted": "Copy Unindexed Filelines",
+	"idx.copyProjectUnlistedPicker": "Copy Unindexed Filelines from Picker",
+	"idx.toggleCheckbox": "Toggle Checkbox X",
+	"idx.createMissing": "Create Missing File or Folder",
+	"idx.setKeybindings": "Set User Keybindings",
+	"idx.collectEditors": "Collect and Group Editors",
+	"idx.closeAllMarkdownEditors": "Close All Markdown Editors",
+	"idx.checkboxer": "Checkbox Label Toggle",
+	"idx.checkboxTag": "Checkbox Tag",
+	"idx.pickCommand": "Pick an IDX Command",
+	"idx.copyKeybindings": "Copy Commands to Clipboard",
+	"idx.removeSelectedCheckboxes": "Remove Selection Checkboxes",
+	"idx.addSelectedCheckboxes": "Add Checkboxes to Selection",
+	"idx.newFilespec": "New Filespec",
+	"idx.checkboxTagJump": "Checkbox Tag Jump",
+	"idx.fileMentions": "File Mentions",
+	"idx.newCheckboxLine": "New Checkbox Line"
+};
+const defaultKeybindings = [
+	{ "command": "idx.openIdx", "key": "` i", "when": "!idxFileActive" },
+	{ "command": "idx.update", "key": "f5", "when": "idxFileActive" },
+	{ "command": "idx.gotoFile", "key": "f2", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
+	{ "command": "idx.openFile", "key": "alt+f2", "when": "idxFileActive && editorHasSelection" },
+	{ "command": "idx.closeFile", "key": "f4", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
+	{ "command": "idx.returnToIdx", "key": "` backspace", "when": "!idxFileActive" },
+	{ "command": "idx.returnToIdxPicker", "key": "` ctrl+backspace", "when": "!idxFileActive" },
+	{ "command": "idx.jumpAny", "key": "alt+` i", "when": "idxFileActive" },
+	{ "command": "idx.jumpWithin", "key": "alt+` alt+i", "when": "idxFileActive" },
+	{ "command": "idx.copyProjectUnlisted", "key": "alt+i ctrl+insert", "when": "idxFileActive" },
+	{ "command": "idx.copyProjectUnlistedPicker", "key": "alt+i alt+insert", "when": "idxFileActive" },
+	{ "command": "idx.toggleCheckbox", "key": "insert x" },
+	{ "command": "idx.collectEditors", "key": "ctrl+` f11" },
+	{ "command": "idx.closeAllMarkdownEditors", "key": "ctrl+` f4" },
+	{ "command": "idx.checkboxer", "key": "ctrl+alt+f10" },
+	{ "command": "idx.checkboxTag", "key": "ctrl+alt+shift+f10" },
+	{ "command": "idx.pickCommand", "key": "" },
+	{ "command": "idx.copyKeybindings", "key": "" },
+	{ "command": "idx.newFilespec", "key": "insert f" },
+	{ "command": "idx.checkboxTagJump", "key": "alt+` t" },
+	{ "command": "idx.fileMentions", "key": "alt+` m" },
+	{ "command": "idx.newCheckboxLine", "key": "insert c" }
+];
+//#endregion _consts
 //#region _interfaces
 // Representation of a fileline parsed from idx.md
 interface FileLine {
@@ -24,8 +80,26 @@ interface FileLine {
 	};
 	filepathRange?: vscode.Range;
 }
-//#endregion _interfaces
 
+// Renamed interface to fit your updated data structures
+interface FileLineShort {
+	lineText: string;
+	lineIndex: number;
+	filepath: string;
+	resolvedPath: string;
+	exists: boolean;
+	isFolder?: boolean;
+	isMultiMatch?: boolean;
+	resolvedPaths?: string[];
+}
+interface CheckboxItem {
+	lineText: string;
+	lineNumber: number;
+	tagType: string; // 'none' or one of the TAGS
+	stateLabel: string; // ToDo, ToReview, Done
+	remainingText: string;
+}
+//#endregion _interfaces
 //#region _cache
 // Global in-memory cache of file existences and directory status to prevent disk I/O overhead on keypresses
 const fileStatsCache = new Map<string, { exists: boolean; isFolder: boolean }>();
@@ -221,7 +295,9 @@ function wildcardToRegex(pattern: string): RegExp {
 	const regexStr = '^' + escaped.replace(/\*/g, '.*') + '$';
 	return new RegExp(regexStr, 'i');
 }
+//#endregion _utils
 
+//#region _utils2
 // Check if a resolved absolute path matches a wildcard filespec token
 function isPathMatchWildcard(filePath: string, wildcardToken: string, parentPath: string, workspaceRoot: string): boolean {
 	let token = wildcardToken;
@@ -297,7 +373,7 @@ function getSelectedLinesForSelection(editor: vscode.TextEditor, sel: vscode.Sel
 function getSelectedLines(editor: vscode.TextEditor): number[] {
 	const allLines = new Set<number>();
 	let hasActiveSelection = false;
-	
+
 	for (const sel of editor.selections) {
 		if (!sel.isEmpty) {
 			hasActiveSelection = true;
@@ -317,6 +393,10 @@ function getSelectedLines(editor: vscode.TextEditor): number[] {
 	return Array.from(allLines).sort((a, b) => { return a - b; });
 }
 
+//#endregion _utils2
+
+
+//#region _utils3
 // Filter a list of FileLines to only those present in the provided selected line numbers
 function getFileLinesInSelection(document: vscode.TextDocument, fileLines: FileLine[], selectedLines: number[]): FileLine[] {
 	const selectedLinesSet = new Set(selectedLines);
@@ -347,7 +427,7 @@ async function resolveFileSpec(
 			let normalized = token.replace(/\\/g, '/');
 			let baseDir = parentPath;
 			let filePattern = token;
-			
+
 			if (token.startsWith('/')) {
 				baseDir = parentPath;
 				filePattern = token.substring(1);
@@ -360,7 +440,7 @@ async function resolveFileSpec(
 					baseDir = path.resolve(workspaceRoot, dirPart);
 				}
 			}
-			
+
 			if (fs.existsSync(baseDir) && fs.statSync(baseDir).isDirectory()) {
 				try {
 					const baseDirLower = baseDir.toLowerCase().replace(/\\/g, '/');
@@ -482,11 +562,261 @@ function doesFileLineMatchCurrentPath(fl: FileLine, currentPath: string, eligibl
 	}
 	return false;
 }
-//#endregion _utils
+/**
+ * Categorization helper using the renamed FileLineShort model mapping
+ */
+function getFilespecTypeGroup(fl: FileLineShort): string {
+    if (fl.isFolder) return 'Folders';
+    if (fl.filepath.includes('*')) return 'Wildcards (Globs)';
+    if (fl.isMultiMatch) return 'Ambiguous (Multi-Match)';
+    if (!fl.exists) return 'Broken Paths (Missing Files)';
+    return 'Valid Files';
+}
+
+/**
+ * Fallback regex baseline string locator
+ */
+function fallbackParseMarkdownFilespecs(document: vscode.TextDocument, workspaceRoot: string): FileLineShort[] {
+	const results: FileLineShort[] = [];
+	const checkboxFileRegex = /^\s*([\s\-\*]*\[([ xX])\])\s*(.*\.(?:ts|js|md|json|txt|py|sh|html|css).*)$/i;
+
+	for (let i = 0; i < document.lineCount; i++) {
+		const line = document.lineAt(i);
+		const match = line.text.match(checkboxFileRegex);
+		if (match) {
+			const filepath = match[3].trim().split(' ')[0];
+			results.push({
+				lineText: line.text,
+				lineIndex: i,
+				filepath: filepath,
+				resolvedPath: path.resolve(workspaceRoot, filepath),
+				exists: true
+			});
+		}
+	}
+	return results;
+}
+//#endregion _utils3
 
 //#region _idx
+/**
+ * Core Markdown Document Parser Engine
+ * Scans document line-by-line, tracks nested headings,
+ * strips tags/checkboxes, and resolves valid workspace path strings.
+ */
+/**
+ * Core Markdown Document Parser Engine
+ * Scans document line-by-line, tracks nested headings,
+ * strips tags/checkboxes, and resolves valid workspace path strings.
+ *
+ * Satisfies:
+ * 1. Filespec can appear anywhere on a line (loops through all words).
+ * 2. Follows original wildcard/glob disk verification lifecycle.
+ * 3. Follows original folder stack inheritance hierarchies.
+ * 4. Follows original index-based string range bounds calculations.
+ */
+export async function parseIdxMarkdown(
+	documentText: string,
+	workspaceRoot: string,
+	openFilePaths: Set<string>
+): Promise<FileLine[]> {
+	const lines = documentText.split(/\r?\n/);
+	const fileLines: FileLine[] = [];
+	const folderStack: { indentation: number; resolvedPath: string }[] = [];
+	let currentHeading = "Index Folder";
+
+	const eligibleExts = getEligibleExtensions();
+	const allWorkspaceFiles = await getAllWorkspaceFiles(workspaceRoot);
+
+	for (let i = 0; i < lines.length; i++) {
+		const lineText = lines[i];
+		const trimmed = lineText.trim();
+		if (!trimmed) continue;
+
+		// 1. Contextually Update Heading Blocks (Follows Original)
+		if (trimmed.startsWith('#')) {
+			currentHeading = trimmed.replace(/^#+\s+/, '');
+			folderStack.length = 0; // Reset folder hierarchy on new headings
+		}
+
+		const indentation = getIndentation(lineText);
+
+		// 2. Extract Structural Prefixes and Checkboxes (Follows Original)
+		const lineRegex = /^(?:#+\s+)?(?:([-*+]\s+|\d+\.\s+)?(?:\[([ xX])\]\s*)?)?(.*)$/;
+		const match = trimmed.match(lineRegex);
+		if (!match) continue;
+
+		const bullet = match[1] || "";
+		const checkboxChar = match[2];
+		const rest = match[3] || "";
+
+		if (!rest.trim()) continue;
+
+		const words = rest.split(/\s+/);
+
+		// Look past custom status keywords if they prefix the word chain
+		let wordsToScan = [...words];
+		if (wordsToScan.length > 0) {
+			const potentialTag = wordsToScan[0].toUpperCase();
+			const isKnownTag = TAGS.some(tag => tag.toUpperCase() === potentialTag || tag.toUpperCase() === potentialTag + ':');
+			if (isKnownTag || potentialTag.endsWith(':')) {
+				wordsToScan.shift(); // Remove status token from path scanning
+			}
+		}
+
+		let filepathIndex = -1;
+		let candidateFilepath = "";
+		let cleanedFilepath = "";
+		let resolvedPathsResult: string[] = [];
+
+		// 3. Scan line tokens programmatically (Principle 1: Filespec Anywhere)
+		for (let w = 0; w < wordsToScan.length; w++) {
+			const word = wordsToScan[w];
+			let cleaned = sanitizeFileSpecWord(word);
+			if (!cleaned) continue;
+
+			// Uniformly allow and normalize backslashes upfront
+			cleaned = cleaned.replace(/\\/g, '/').replace(/\/+/g, '/');
+
+			const ext = path.extname(cleaned).substring(1).toLowerCase();
+			const isEligibleOrCommonExt = eligibleExts.includes(ext) || [
+				'png', 'jpg', 'jpeg', 'gif', 'svg', 'css', 'html', 'less', 'scss',
+				'yml', 'yaml', 'toml', 'xml', 'ini', 'cfg', 'conf', 'sh', 'bash',
+				'zsh', 'bat', 'cmd', 'ps1', 'py', 'rb', 'pl', 'pm', 'php', 'aspx',
+				'jsp', 'c', 'cpp', 'h', 'hpp', 'cs', 'java', 'kt', 'kts', 'swift',
+				'rs', 'go', 'lock', 'env', 'gitignore'
+			].includes(ext);
+
+			const isAbsoluteDrive = /^[a-zA-Z]:\//.test(cleaned);
+			let isExplicitPath = isAbsoluteDrive || cleaned.includes('/') || cleaned.endsWith('.*') || cleaned.startsWith('.') || (cleaned.includes('.') && isEligibleOrCommonExt);
+
+			if (isExplicitPath && cleaned.includes('/') && !isAbsoluteDrive) {
+				let parentFolder = undefined;
+				for (let idx = folderStack.length - 1; idx >= 0; idx--) {
+					if (folderStack[idx].indentation < indentation) {
+						parentFolder = folderStack[idx];
+						break;
+					}
+				}
+				const parentPath = parentFolder ? parentFolder.resolvedPath : workspaceRoot;
+				if (!isValidExplicitPathWithSlashes(cleaned, parentPath, workspaceRoot)) {
+					isExplicitPath = false;
+				}
+			}
+
+			// Call original resolution logic callback (Principle 2: Glob Verification)
+			const { matchedPaths } = await resolveFileSpec(cleaned, indentation, folderStack, workspaceRoot, allWorkspaceFiles, eligibleExts);
+
+			if (matchedPaths.length > 0 || isExplicitPath) {
+				filepathIndex = w;
+				candidateFilepath = word; // Retain raw word formatting for exact character match index
+				cleanedFilepath = cleaned;
+				resolvedPathsResult = matchedPaths;
+				break;
+			}
+		}
+
+		if (filepathIndex === -1) {
+			continue;
+		}
+
+		// 4. Calculate Character Spans and Boundaries Safely (Principle 4: Original Range Calculations)
+		const filepathStartIndex = lineText.indexOf(candidateFilepath);
+		if (filepathStartIndex === -1) continue;
+
+		const fullPrefix = lineText.substring(0, filepathStartIndex);
+		const suffix = lineText.substring(filepathStartIndex + candidateFilepath.length);
+
+		let prefix = fullPrefix;
+		let checkboxInfo: FileLine['checkbox'] = undefined;
+
+		if (checkboxChar !== undefined) {
+			const checkboxStr = `[${checkboxChar}]`;
+			const checkboxIdx = fullPrefix.indexOf(checkboxStr);
+			if (checkboxIdx !== -1) {
+				prefix = fullPrefix.substring(0, checkboxIdx) + fullPrefix.substring(checkboxIdx + checkboxStr.length);
+				const checkboxRange = new vscode.Range(
+					new vscode.Position(i, checkboxIdx),
+					new vscode.Position(i, checkboxIdx + checkboxStr.length)
+				);
+				checkboxInfo = {
+					checked: checkboxChar.toLowerCase() === 'x',
+					range: checkboxRange
+				};
+			}
+		}
+
+		const exists = resolvedPathsResult.length > 0;
+		const isMultiMatch = resolvedPathsResult.length > 1 || cleanedFilepath.includes('*') || cleanedFilepath.includes('?');
+
+		let resolvedPath = "";
+		if (exists) {
+			resolvedPath = resolvedPathsResult[0];
+		} else {
+			let parentFolder = undefined;
+			for (let idx = folderStack.length - 1; idx >= 0; idx--) {
+				if (folderStack[idx].indentation < indentation) {
+					parentFolder = folderStack[idx];
+					break;
+				}
+			}
+			const parentPath = parentFolder ? parentFolder.resolvedPath : workspaceRoot;
+
+			let cleanToken = cleanedFilepath;
+			if (cleanToken.startsWith('./')) {
+				cleanToken = cleanToken.substring(2);
+			} else if (cleanToken.startsWith('/')) {
+				cleanToken = cleanToken.substring(1);
+			}
+
+			resolvedPath = /^[a-zA-Z]:\//.test(cleanToken) ? path.normalize(cleanToken) : path.resolve(parentPath, cleanToken);
+		}
+
+		// 5. Update Folder Hierarchy Stack Tracking Matrix (Principle 3: Folderspec Inheritance)
+		let isFolder = false;
+		if (exists) {
+			isFolder = getCachedFileStats(resolvedPath).isFolder;
+		} else {
+			isFolder = !cleanedFilepath.includes('.') || cleanedFilepath.endsWith('/');
+		}
+
+		while (folderStack.length > 0 && folderStack[folderStack.length - 1].indentation >= indentation) {
+			folderStack.pop();
+		}
+		if (isFolder) {
+			folderStack.push({ indentation, resolvedPath });
+		}
+
+		const filepathRange = new vscode.Range(
+			new vscode.Position(i, filepathStartIndex),
+			new vscode.Position(i, filepathStartIndex + candidateFilepath.length)
+		);
+
+		fileLines.push({
+			lineIndex: i,
+			lineText,
+			indentation,
+			heading: currentHeading,
+			filepath: cleanedFilepath,
+			resolvedPath,
+			resolvedPaths: resolvedPathsResult,
+			isMultiMatch,
+			exists,
+			isFolder,
+			prefix,
+			suffix,
+			checkbox: checkboxInfo,
+			filepathRange
+		});
+	}
+
+	return fileLines;
+}
+//#endregion _idx
+
+//#region _idx2
 // Robust recursive file explorer parser
-async function parseIdxMarkdown(documentText: string, workspaceRoot: string, openFilePaths: Set<string>): Promise<FileLine[]> {
+async function parseIdxMarkdown0(documentText: string, workspaceRoot: string, openFilePaths: Set<string>): Promise<FileLine[]> {
 	const lines = documentText.split(/\r?\n/);
 	const fileLines: FileLine[] = [];
 	const folderStack: { indentation: number; resolvedPath: string }[] = [];
@@ -531,7 +861,7 @@ async function parseIdxMarkdown(documentText: string, workspaceRoot: string, ope
 
 			const ext = path.extname(cleaned).substring(1).toLowerCase();
 			const isEligibleOrCommonExt = eligibleExts.includes(ext) || ['png', 'jpg', 'jpeg', 'gif', 'svg', 'css', 'html', 'less', 'scss', 'yml', 'yaml', 'toml', 'xml', 'ini', 'cfg', 'conf', 'sh', 'bash', 'zsh', 'bat', 'cmd', 'ps1', 'py', 'rb', 'pl', 'pm', 'php', 'aspx', 'jsp', 'c', 'cpp', 'h', 'hpp', 'cs', 'java', 'kt', 'kts', 'swift', 'rs', 'go', 'lock', 'env', 'gitignore'].includes(ext);
-			
+
 			let isExplicitPath = cleaned.includes('/') || cleaned.includes('\\') || cleaned.endsWith('.*') || cleaned.startsWith('.') || (cleaned.includes('.') && isEligibleOrCommonExt);
 
 			if (isExplicitPath && (cleaned.includes('/') || cleaned.includes('\\'))) {
@@ -653,9 +983,133 @@ async function parseIdxMarkdown(documentText: string, workspaceRoot: string, ope
 
 	return fileLines;
 }
-//#endregion _idx
+//#endregion _idx2
 
 //#region _classes
+//#region _class_AdvancedMarkdownFoldingProvider
+export class AdvancedMarkdownFoldingProvider implements vscode.FoldingRangeProvider {
+	public provideFoldingRanges(
+		document: vscode.TextDocument,
+		context: vscode.FoldingContext,
+		token: vscode.CancellationToken
+	): vscode.ProviderResult<vscode.FoldingRange[]> {
+		const ranges: vscode.FoldingRange[] = [];
+		const lineCount = document.lineCount;
+
+		for (let i = 0; i < lineCount; i++) {
+			if (token.isCancellationRequested) return [];
+
+			const line = document.lineAt(i);
+			if (line.isEmptyOrWhitespace) continue;
+
+			const text = line.text;
+
+			// --- STRATEGY A: MARKDOWN HEADERS ---
+			const headerMatch = text.match(/^(#{1,6})\s+/);
+			if (headerMatch) {
+				const currentLevel = headerMatch[1].length;
+				let endLine = lineCount - 1;
+
+				for (let j = i + 1; j < lineCount; j++) {
+					const nextText = document.lineAt(j).text;
+					const nextHeaderMatch = nextText.match(/^(#{1,6})\s+/);
+					if (nextHeaderMatch) {
+						const nextLevel = nextHeaderMatch[1].length;
+						// Higher or equal header hierarchy level terminates the block
+						if (nextLevel <= currentLevel) {
+							endLine = j - 1;
+							break;
+						}
+					}
+				}
+				endLine = this.trimTrailingWhitespaceLines(document, i, endLine);
+				if (endLine > i) {
+					ranges.push(new vscode.FoldingRange(i, endLine, vscode.FoldingRangeKind.Region));
+				}
+				continue; // Line handled by header strategy
+			}
+
+			// --- STRATEGY B: CODE BLOCKS (```) ---
+			const codeBlockMatch = text.match(/^(\s*)```/);
+			if (codeBlockMatch) {
+				let endLine = -1;
+				for (let j = i + 1; j < lineCount; j++) {
+					// Match closing block at the same or less indentation
+					if (document.lineAt(j).text.trim().startsWith('```')) {
+						endLine = j;
+						break;
+					}
+				}
+				if (endLine > i) {
+					ranges.push(new vscode.FoldingRange(i, endLine, vscode.FoldingRangeKind.Imports));
+					i = endLine; // Fast-forward loop past the code block boundaries
+				}
+				continue;
+			}
+
+			// --- STRATEGY C: BULLETS & ARBITRARY INDENTATION ---
+			// Calculate base visual indentation space length
+			const currentIndent = this.getIndentLevel(text);
+
+			// Detect if line is a bullet item list row
+			const isBullet = /^\s*([\-\*\+ ]|\d+\.)\s+/.test(text);
+
+			let endLine = i;
+			for (let j = i + 1; j < lineCount; j++) {
+				const nextLine = document.lineAt(j);
+				if (nextLine.isEmptyOrWhitespace) continue;
+
+				// Headers instantly break open indent strings or loose bullets
+				if (/^(#{1,6})\s+/.test(nextLine.text)) break;
+
+				const nextIndent = this.getIndentLevel(nextLine.text);
+
+				// If next line is deeper, it belongs to the child block tree
+				if (nextIndent > currentIndent) {
+					endLine = j;
+				}
+				// If it shares the same indentation, check if they are siblings in a bullet list
+				else if (nextIndent === currentIndent && isBullet) {
+					// Siblings don't collapse together; stop grouping here so individual items collapse separately
+					break;
+				} else {
+					// Indentation shrank; scope blocks have ended
+					break;
+				}
+			}
+
+			endLine = this.trimTrailingWhitespaceLines(document, i, endLine);
+			if (endLine > i) {
+				ranges.push(new vscode.FoldingRange(i, endLine));
+			}
+		}
+
+		return ranges;
+	}
+
+	/**
+	 * Helper to compute true visual workspace tab indentation weights
+	 */
+	private getIndentLevel(text: string): number {
+		const match = text.match(/^(\s*)/);
+		if (!match) return 0;
+
+		// Convert hard tabs to a standard 4-space weighting scale
+		return match[1].replace(/\t/g, '    ').length;
+	}
+
+	/**
+	 * Trims blank empty rows off the bottom of ranges so folding folds neatly
+	 */
+	private trimTrailingWhitespaceLines(document: vscode.TextDocument, start: number, end: number): number {
+		while (end > start && document.lineAt(end).isEmptyOrWhitespace) {
+			end--;
+		}
+		return end;
+	}
+}
+//#endregion _class_AdvancedMarkdownFoldingProvider
+
 //#region _class_GutterDecorationManager
 class GutterDecorationManager {
 	//#region _class_GutterDecorationManager_vars
@@ -940,6 +1394,8 @@ class GutterDecorationManager {
 	//#endregion _class_GutterDecorationManager_functions
 }
 //#endregion _class_GutterDecorationManager
+//#endregion _classes
+//#region _classes2
 
 //#region _class_IdxCodeActionProvider
 class IdxCodeActionProvider implements vscode.CodeActionProvider {
@@ -1034,33 +1490,10 @@ class IdxStatusBarContainer {
 
 //#region _class_CommandMetadataContainer
 class CommandMetadataContainer {
-	static readonly descriptions: { [cmd: string]: string } = {
-		"idx.openIdx": "Go To Index File",
-		"idx.update": "Update Index File Listings",
-		"idx.gotoFile": "Edit Files",
-		"idx.openFile": "Open Files",
-		"idx.closeFile": "Close Files",
-		"idx.returnToIdx": "Return to Index Location",
-		"idx.returnToIdxPicker": "Return to Index Location Picker",
-		"idx.jumpAny": "Jump to Any File (List All)",
-		"idx.jumpWithin": "Jump Within Index Listings",
-		"idx.copyProjectUnlisted": "Copy Unindexed Filelines",
-		"idx.copyProjectUnlistedPicker": "Copy Unindexed Filelines from Picker",
-		"idx.toggleCheckbox": "Toggle Checkbox X",
-		"idx.createMissing": "Create Missing File or Folder",
-		"idx.setKeybindings": "Set User Keybindings",
-		"idx.collectEditors": "Collect and Group Editors",
-		"idx.closeAllMarkdownEditors": "Close All Markdown Editors",
-		"idx.checkboxer": "Checkbox Label Toggle",
-		"idx.checkboxTag": "Checkbox Tag",
-		"idx.pickCommand": "Pick an IDX Command",
-		"idx.copyKeybindings": "Copy Commands to Clipboard",
-		"idx.removeSelectedCheckboxes": "Remove Selection Checkboxes",
-		"idx.addSelectedCheckboxes": "Add Checkboxes to Selection"
-	};
+	static readonly descriptions: { [cmd: string]: string } = CommandMetadataContainer_descriptions;
 }
 //#endregion _class_CommandMetadataContainer
-//#endregion _classes
+//#endregion _classes2
 
 //#region _state
 let activeIdxFileLines: FileLine[] = [];
@@ -1369,6 +1802,546 @@ async function getIndexUri(): Promise<vscode.Uri | undefined> {
 //#endregion _settings
 
 //#region _commands
+
+//#region _commands1
+export function registerFileMentionsCommand(context: vscode.ExtensionContext) {
+	const disposable = vscode.commands.registerCommand('idx.fileMentions', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) return;
+
+		const document = editor.document;
+		const cursorLine = editor.selection.active.line;
+
+		// 1. Resolve Workspace Root Path
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders) return;
+		const workspaceRoot = workspaceFolders[0].uri.fsPath;
+
+		// 2. Fetch Open Editor Paths
+		const openFilePaths = new Set<string>();
+		for (const group of vscode.window.tabGroups.all) {
+			for (const tab of group.tabs) {
+				if (tab.input instanceof vscode.TabInputText) {
+					openFilePaths.add(tab.input.uri.fsPath);
+				}
+			}
+		}
+
+		// 3. Scan document for all filespec rows via the new multi-directory engine
+		let allFileLines: FileLineShort[] = [];
+		try {
+			//allFileLines = await (global as any).parseIdxMarkdown(document.getText(), workspaceRoot, openFilePaths);
+			allFileLines = await parseIdxMarkdown(document.getText(), workspaceRoot, openFilePaths);
+		} catch (e) {
+			// If the global hook isn't active, ensure you call your local module import directly
+			vscode.window.showErrorMessage("Could not invoke parseIdxMarkdown pipeline.");
+			return;
+		}
+
+		if (allFileLines.length === 0) {
+			vscode.window.showInformationMessage('No filespec lines discovered inside this document.');
+			return;
+		}
+
+		// 4. Resolve the targeted Filespec at or above the cursor line position
+		let activeFilespec: FileLineShort | undefined = undefined;
+		for (let l = cursorLine; l >= 0; l--) {
+			const found = allFileLines.find(fl => fl.lineIndex === l);
+			if (found) {
+				activeFilespec = found;
+				break;
+			}
+		}
+
+		if (!activeFilespec) {
+			vscode.window.showInformationMessage("No file or folder path found at or above current line.");
+			return;
+		}
+
+		const targetPathToken = activeFilespec.filepath;
+
+		// 5. Filter for lines that share the exact same written token (excluding the active line itself)
+		const matchingMentions = allFileLines.filter(fl => fl.filepath === targetPathToken && fl.lineIndex !== cursorLine);
+
+		if (matchingMentions.length === 0) {
+			vscode.window.showInformationMessage(`No other lines mention the filespec token: "${targetPathToken}"`);
+			return;
+		}
+
+		// 6. Group and sort mentions by their explicit structural file path resolution types
+		matchingMentions.sort((a, b) => {
+			const typeA = determinePathResolutionType(a);
+			const typeB = determinePathResolutionType(b);
+			const typeCompare = typeA.localeCompare(typeB);
+			if (typeCompare !== 0) return typeCompare;
+			return a.lineIndex - b.lineIndex; // Fallback chronological row sort
+		});
+
+		// 7. Map elements to QuickPickItems with clear visual icons
+		type MentionPickItem = vscode.QuickPickItem & { targetLine?: number };
+		const pickerItems: MentionPickItem[] = [];
+		let currentGroupHeader = '';
+
+		matchingMentions.forEach(fl => {
+			const pathType = determinePathResolutionType(fl);
+
+			// Inject structural separators when changing resolution families
+			if (pathType !== currentGroupHeader) {
+				currentGroupHeader = pathType;
+				pickerItems.push({
+					kind: vscode.QuickPickItemKind.Separator,
+					label: `${currentGroupHeader} [Sorted by Line]`
+				});
+			}
+
+			// Parse state decorations
+			const stateLabel = parseCheckboxStateLabel(fl.lineText);
+			const cleanTextDescription = fl.lineText.replace(/^\s*([\s\-\*]*\[([ xX])\])\s*/, '').trim();
+
+			// Set up tailored file badge status markers
+			let contextGutterBadge = "$(primitive-square) [Direct]";
+			if (fl.isMultiMatch) {
+				// Multi-match indicator shapes as per spec rules
+				contextGutterBadge = `$(layers) [Multi-Match: ${fl.resolvedPaths?.length || 2} dirs]`;
+			} else if (fl.filepath.startsWith('/')) {
+				contextGutterBadge = "$(key) [Inherited Path]";
+			} else if (!fl.exists) {
+				contextGutterBadge = "$(warning) [Missing]";
+			}
+
+			pickerItems.push({
+				label: `[${stateLabel}] Line ${fl.lineIndex + 1}`,
+				description: `${contextGutterBadge} — ${cleanTextDescription}`,
+				detail: fl.filepath === fl.resolvedPath ? fl.filepath : `${fl.filepath} ➔ ${path.basename(fl.resolvedPath)}`,
+				targetLine: fl.lineIndex
+			});
+		});
+
+		// 8. Open the selection tracking viewport window
+		const quickPick = vscode.window.createQuickPick<MentionPickItem>();
+		quickPick.items = pickerItems;
+		quickPick.placeholder = `Mentions matching filespec '${targetPathToken}' (${matchingMentions.length} found)`;
+
+		quickPick.onDidChangeActive(items => {
+			//  CORRECT: Safely check the first element of the active items array
+			if (items.length > 0 && items[0].targetLine !== undefined) {
+				const targetLine = items[0].targetLine;
+				const targetRange = new vscode.Range(targetLine, 0, targetLine, 0);
+				editor.revealRange(targetRange, vscode.TextEditorRevealType.InCenter);
+			}
+		});
+
+		quickPick.onDidAccept(() => {
+			const selection = quickPick.selectedItems[0];
+			quickPick.hide();
+
+			if (selection && selection.targetLine !== undefined) {
+				const targetLine = selection.targetLine;
+				const position = new vscode.Position(targetLine, 0);
+				editor.selection = new vscode.Selection(position, position);
+				editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+			}
+		});
+
+		quickPick.onDidHide(() => quickPick.dispose());
+		quickPick.show();
+	});
+
+	context.subscriptions.push(disposable);
+}
+
+/**
+ * Categorizes filespec references by path configuration behavior type
+ */
+function determinePathResolutionType(fl: FileLineShort): string {
+	if (!fl.exists) return "⚠️ Broken Filespec Links";
+	if (fl.isMultiMatch) return "🔀 Ambiguous Multi-Directory Queries";
+	if (fl.filepath.startsWith('./') || fl.filepath.startsWith('../')) return "📍 Explicit Relative Offsets";
+	if (fl.filepath.startsWith('/')) return "🌿 Inherited Directory Synthetics";
+	return "📄 Standard Single Matches";
+}
+
+function parseCheckboxStateLabel(text: string): string {
+	const match = text.match(/^\s*[\s\-\*]*\[([ xX])\]/);
+	if (!match) return 'ToDo';
+	const char = match[1];
+	if (char === 'x') return 'ToReview';
+	if (char === 'X') return 'Done';
+	return 'ToDo';
+}
+//#endregion _commands1
+
+//#region _commands2
+export function registerCheckboxTagJumpCommand(context: vscode.ExtensionContext) {
+	const disposable = vscode.commands.registerCommand('idx.checkboxTagJump', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) return;
+
+		const document = editor.document;
+		const totalLines = document.lineCount;
+		const scanResults: CheckboxItem[] = [];
+
+		// 1. Scan document for checkbox structures using a comprehensive Regex
+		// Captures standard [ ], [x], and [X] checkbox sequences
+		const checkboxRegex = /^\s*([\s\-\*]*\[([ xX])\])\s*(.*)$/;
+
+		for (let i = 0; i < totalLines; i++) {
+			const line = document.lineAt(i);
+			const match = line.text.match(checkboxRegex);
+
+			if (match) {
+				const charState = match[2];
+				const contentText = match[3].trim();
+
+				let stateLabel = 'ToDo';
+				if (charState === 'x') stateLabel = 'ToReview';
+				if (charState === 'X') stateLabel = 'Done';
+
+				// Look for known tags at the beginning of the remaining content text
+				let matchedTag = 'none';
+				let remainingText = contentText;
+
+				for (const tag of TAGS) {
+					if (contentText.startsWith(tag)) {
+						matchedTag = tag;
+						remainingText = contentText.substring(tag.length).trim();
+						break;
+					}
+				}
+
+				scanResults.push({
+					lineText: line.text,
+					lineNumber: i,
+					tagType: matchedTag,
+					stateLabel,
+					remainingText
+				});
+			}
+		}
+
+		if (scanResults.length === 0) {
+			vscode.window.showInformationMessage('No markdown checkboxes detected in this file.');
+			return;
+		}
+
+		// 2. Count distributions for Picker #1
+		const tagCounts: Record<string, number> = { 'none': 0 };
+		TAGS.forEach(t => tagCounts[t] = 0);
+		scanResults.forEach(item => tagCounts[item.tagType]++);
+
+		const firstPickerItems = Object.keys(tagCounts)
+			.filter(tag => tagCounts[tag] > 0) // Only display active categories
+			.map(tag => ({
+				label: tag,
+				description: `Count: ${tagCounts[tag]}`
+			}));
+
+		// Display Picker #1 (Multi-select tag filter)
+		const selectedTags = await vscode.window.showQuickPick(firstPickerItems, {
+			placeHolder: 'Choose checkbox tag categories to view',
+			canPickMany: true
+		});
+
+		if (!selectedTags || selectedTags.length === 0) return;
+		const targetTagNames = selectedTags.map(t => t.label);
+
+		// Filter matched elements to pass along to Picker #2
+		const filteredOccurrences = scanResults.filter(item => targetTagNames.includes(item.tagType));
+
+		// Sort occurrences by tag type so they group cleanly under structural separators
+		filteredOccurrences.sort((a, b) => a.tagType.localeCompare(b.tagType));
+
+		// 3. Build occurrence menu items using VS Code's structural layout
+		type OccurrencePickItem = vscode.QuickPickItem & { itemRef?: CheckboxItem };
+		const secondPickerItems: OccurrencePickItem[] = [];
+		let lastSeenTag = '';
+
+		filteredOccurrences.forEach(occur => {
+			if (occur.tagType !== lastSeenTag) {
+				lastSeenTag = occur.tagType;
+				secondPickerItems.push({
+					kind: vscode.QuickPickItemKind.Separator,
+					label: `Tag Type: ${lastSeenTag.replace(':', '')}`
+				});
+			}
+
+			secondPickerItems.push({
+				label: `[${occur.stateLabel}] Line ${occur.lineNumber + 1}`,
+				description: occur.remainingText,
+				detail: occur.remainingText,
+				itemRef: occur
+			});
+		});
+
+		// Generate customized window picker to support live scrolling focus events
+		const secondQuickPick = vscode.window.createQuickPick<OccurrencePickItem>();
+		secondQuickPick.items = secondPickerItems;
+		secondQuickPick.canSelectMany = true;
+		secondQuickPick.placeholder = 'Select target check lines (Use Search to match labels/descriptions)';
+
+		// Track user's focus cursor line dynamically to scroll the active text area
+		secondQuickPick.onDidChangeActive(items => {
+			if (items.length > 0 && items[0].itemRef) {
+				const targetLine = items[0].itemRef.lineNumber;
+				const targetRange = new vscode.Range(targetLine, 0, targetLine, 0);
+				editor.revealRange(targetRange, vscode.TextEditorRevealType.InCenter);
+			}
+		});
+
+		secondQuickPick.onDidAccept(async () => {
+			const finalChosenItems = secondQuickPick.selectedItems.filter(i => i.itemRef !== undefined);
+			secondQuickPick.hide();
+
+			if (finalChosenItems.length === 0) return;
+
+			// 4. Offer choice picker actions on structural validation
+			const actionChoices = [
+				{ label: 'Goto Line', description: 'Jump cursor to the chosen line item' },
+				{ label: 'Copy Lines', description: 'Copy structural checkbox row texts directly onto workspace clipboard' }
+			];
+
+			const finalAction = await vscode.window.showQuickPick(actionChoices, {
+				placeHolder: 'Choose execution action for selections'
+			});
+
+			if (!finalAction) return;
+
+			if (finalAction.label === 'Goto Line') {
+				// Focus on the first element selected
+				const targetLine = finalChosenItems[0].itemRef!.lineNumber;
+				const position = new vscode.Position(targetLine, 0);
+				editor.selection = new vscode.Selection(position, position);
+				editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+			} else if (finalAction.label === 'Copy Lines') {
+				const aggregatedText = finalChosenItems.map(i => i.itemRef!.lineText).join('\n');
+				await vscode.env.clipboard.writeText(aggregatedText);
+				vscode.window.showInformationMessage(`Copied ${finalChosenItems.length} lines to your clipboard.`);
+			}
+		});
+
+		secondQuickPick.onDidHide(() => secondQuickPick.dispose());
+		secondQuickPick.show();
+	});
+
+	context.subscriptions.push(disposable);
+}
+//#endregion _commands2
+
+//#region _commands3
+export function registerNewFilespecCommand(context: vscode.ExtensionContext) {
+    const disposable = vscode.commands.registerCommand('idx.newFilespec', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+
+        const document = editor.document;
+        const selection = editor.selection;
+        const currentLine = document.lineAt(selection.active.line);
+        const currentText = currentLine.text;
+
+        // 1. Gather workspace files (skipping node_modules)
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            vscode.window.showInformationMessage('No workspace folder open.');
+            return;
+        }
+
+        const fileUris = await vscode.workspace.findFiles('**/*', '**/node_modules/**');
+        const fileItems: (vscode.QuickPickItem & { relativePath: string })[] = fileUris.map(uri => {
+            const relativePath = vscode.workspace.asRelativePath(uri, false);
+            return {
+                label: path.basename(relativePath),
+                detail: relativePath,
+                relativePath: relativePath
+            };
+        });
+
+        // 2. Setup the dynamic File Picker
+        const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem & { relativePath?: string }>();
+        quickPick.placeholder = 'Select a file to insert';
+
+        const selectManyItem = { label: '$(list-unordered) [Select Many Options]', description: 'Click to select multiple files' };
+        quickPick.items = [selectManyItem, ...fileItems];
+
+        let selectedFiles: string[] = [];
+
+        quickPick.onDidAccept(async () => {
+            const selected = quickPick.selectedItems;
+
+            // Handle "Select Many" toggle mode
+            if (selected.length === 1 && selected[0].label === selectManyItem.label) {
+                quickPick.canSelectMany = true;
+                quickPick.items = fileItems;
+                quickPick.placeholder = 'Select multiple files, then click OK or press Enter';
+                return;
+            }
+
+            if (selected.length === 0) {
+                quickPick.hide();
+                return;
+            }
+
+            selectedFiles = selected
+                .filter(item => item.relativePath !== undefined)
+                .map(item => item.relativePath!);
+
+            quickPick.hide();
+
+            // 3. Setup Second Picker (Identical to New Checkbox Line)
+            const indentMatch = currentText.match(/^(\s*)/);
+            const indentation = indentMatch ? indentMatch[0] : '';
+
+            const headerMatch = currentText.trim().match(/^(#+)\s/);
+            const currentHeaderLevel = headerMatch ? headerMatch[1].length : 0;
+
+            const prefixItems: (vscode.QuickPickItem & { prefix: string })[] = [];
+
+            if (currentHeaderLevel > 0) {
+                prefixItems.push({
+                    label: 'Same level header',
+                    description: '#'.repeat(currentHeaderLevel),
+                    prefix: '#'.repeat(currentHeaderLevel) + ' '
+                });
+                prefixItems.push({
+                    label: 'Parent level header',
+                    description: '#'.repeat(Math.max(1, currentHeaderLevel - 1)),
+                    prefix: '#'.repeat(Math.max(1, currentHeaderLevel - 1)) + ' '
+                });
+                prefixItems.push({
+                    label: 'Sub level header',
+                    description: '#'.repeat(currentHeaderLevel + 1),
+                    prefix: '#'.repeat(currentHeaderLevel + 1) + ' '
+                });
+            } else {
+                prefixItems.push({ label: 'Same level header', description: '###', prefix: '### ' });
+                prefixItems.push({ label: 'Parent level header', description: '##', prefix: '## ' });
+                prefixItems.push({ label: 'Sub level header', description: '####', prefix: '#### ' });
+            }
+
+            prefixItems.push({ label: 'Bullet', description: '-', prefix: '- ' });
+            prefixItems.push({ label: 'Empty', description: 'No prefix', prefix: '' });
+
+            const selectedPrefix = await vscode.window.showQuickPick(prefixItems, {
+                placeHolder: 'Select a prefix for your new checkbox line',
+            });
+
+            if (!selectedPrefix) {
+                return; // User cancelled
+            }
+
+            // 4. Construct text block containing checkboxes and file paths
+            const textToInsert = selectedFiles.map((relPath, index) => {
+                // Format: [Indentation][Selected Prefix][Checkbox Option][File Path]
+                const lineContent = `${indentation}${selectedPrefix.prefix}[ ] ${relPath}`;
+
+                // If it is the first file, don't double up on the current cursor line's indentation
+                if (index === 0) {
+                    return `${selectedPrefix.prefix}[ ] ${relPath}`;
+                }
+                return lineContent;
+            }).join('\n');
+
+            // 5. Insert text block into editor at current cursor position
+            await editor.edit(editBuilder => {
+                editBuilder.insert(selection.active, textToInsert);
+            });
+        });
+
+        quickPick.onDidHide(() => quickPick.dispose());
+        quickPick.show();
+    });
+
+    context.subscriptions.push(disposable);
+}
+//#endregion _commands3
+
+//#region _commands4
+export function registerNewCheckboxLineCommand(context: vscode.ExtensionContext) {
+	const disposable = vscode.commands.registerCommand('idx.newCheckboxLine', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return;
+		}
+
+		const document = editor.document;
+		const selection = editor.selection;
+		const currentLine = document.lineAt(selection.active.line);
+		const currentText = currentLine.text;
+
+		// 1. Preserve indentation
+		const indentMatch = currentText.match(/^(\s*)/);
+		const indentation = indentMatch ? indentMatch[1] : '';
+
+		// 2. Analyze the current line to find markdown headers
+		const headerMatch = currentText.trim().match(/^(#+)\s/);
+		const currentHeaderLevel = headerMatch ? headerMatch[1].length : 0;
+
+		// 3. Define picker options dynamically based on the current context
+		const items: (vscode.QuickPickItem & { prefix: string })[] = [];
+
+		if (currentHeaderLevel > 0) {
+			// Context: User is currently on a header line
+			items.push({
+				label: 'Same level header',
+				description: '#'.repeat(currentHeaderLevel),
+				prefix: '#'.repeat(currentHeaderLevel) + ' '
+			});
+			items.push({
+				label: 'Parent level header',
+				description: '#'.repeat(Math.max(1, currentHeaderLevel - 1)),
+				prefix: '#'.repeat(Math.max(1, currentHeaderLevel - 1)) + ' '
+			});
+			items.push({
+				label: 'Sub level header',
+				description: '#'.repeat(currentHeaderLevel + 1),
+				prefix: '#'.repeat(currentHeaderLevel + 1) + ' '
+			});
+		} else {
+			// Context: User is on a normal line (default fallback to H3)
+			items.push({ label: 'Same level header', description: '###', prefix: '### ' });
+			items.push({ label: 'Parent level header', description: '##', prefix: '## ' });
+			items.push({ label: 'Sub level header', description: '####', prefix: '#### ' });
+		}
+
+		// Add bullet and empty options
+		items.push({ label: 'Bullet', description: '-', prefix: '- ' });
+		items.push({ label: 'Empty', description: 'No prefix', prefix: '' });
+
+		// 4. Show the picker
+		const selected = await vscode.window.showQuickPick(items, {
+			placeHolder: 'Select a prefix for your new checkbox line',
+		});
+
+		if (!selected) {
+			return; // User canceled
+		}
+
+		// 5. Construct the empty checkbox string: [prefix][[ ]]
+		const checkboxString = `${indentation}${selected.prefix}[ ] `;
+
+		// 6. Insert new line below current line
+		await editor.edit(editBuilder => {
+			const insertPosition = new vscode.Position(selection.active.line + 1, 0);
+
+			if (selection.active.line === document.lineCount - 1) {
+				// If it's the last line, insert a newline character first
+				editBuilder.insert(currentLine.range.end, `\n${checkboxString}`);
+			} else {
+				editBuilder.insert(insertPosition, `${checkboxString}\n`);
+			}
+		});
+
+		// 7. Move cursor to the end of the newly inserted checkbox line
+		const newLineNumber = selection.active.line + 1;
+		const newLineTarget = document.lineAt(newLineNumber);
+		const newSelection = new vscode.Selection(newLineTarget.range.end, newLineTarget.range.end);
+		editor.selection = newSelection;
+	});
+
+	context.subscriptions.push(disposable);
+}
+
 async function handleMissingFileCreation(fl: FileLine, workspaceRoot: string) {
 	let targetFilename = fl.filepath;
 	let extChosen = "";
@@ -1446,7 +2419,9 @@ async function openIdxCommand() {
 	const doc = await vscode.workspace.openTextDocument(idxUri);
 	await vscode.window.showTextDocument(doc);
 }
+//#endregion _commands4
 
+//#region _commands5
 async function updateIdxCommand(document: vscode.TextDocument) {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) return;
@@ -1567,7 +2542,10 @@ async function updateIdxCommand(document: vscode.TextDocument) {
 	await vscode.workspace.applyEdit(edit);
 	vscode.window.showInformationMessage("Index list updated successfully.");
 }
+//#endregion _commands5
 
+//#region _commands6
+// section 1
 async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: string[], preserveFocus: boolean) {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) { return; }
@@ -1597,6 +2575,8 @@ async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: s
 		}
 	}
 	const parentPath = parentFileLine ? parentFileLine.resolvedPath : workspaceRoot;
+	//end section 1
+	// section 2
 
 	// Loop back to redraw picker after state updates
 	while (true) {
@@ -1837,7 +2817,11 @@ async function showWildcardPicker(targetFileLine: FileLine, allWorkspaceFiles: s
 		}
 	}
 }
+//end section 2
 
+//#endregion _commands6
+
+//#region _commands7
 async function gotoFileCommand() {
 	await resolveFilelineUnderCursor(false);
 }
@@ -1845,7 +2829,9 @@ async function gotoFileCommand() {
 async function openFileCommand() {
 	await resolveFilelineUnderCursor(true);
 }
+//#endregion _commands7
 
+//#region _commands8
 async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 	const idxEditor = vscode.window.activeTextEditor;
 	if (!idxEditor) { return; }
@@ -2079,7 +3065,9 @@ async function resolveFilelineUnderCursor(preserveFocus: boolean) {
 		}
 	}
 }
+//#endregion _commands8
 
+//#region _commands9
 async function closeFileCommand() {
 	const idxEditor = vscode.window.activeTextEditor;
 	if (!idxEditor) { return; }
@@ -2266,7 +3254,9 @@ async function returnToIdxCommand() {
 		}
 	}
 }
+//#endregion _commands9
 
+//#region _commands10
 async function showJumpAnyPicker() {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) return;
@@ -2470,7 +3460,9 @@ async function copyProjectUnlistedPickerCommand(document: vscode.TextDocument) {
 	quickPick.onDidHide(() => quickPick.dispose());
 	quickPick.show();
 }
+//#endregion _commands10
 
+//#region _commands11
 async function toggleCheckboxCommand() {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) { return; }
@@ -2760,7 +3752,9 @@ function isCommandApplicable(command: string, editor: vscode.TextEditor | undefi
 			return true;
 	}
 }
+//#endregion _commands11
 
+//#region _commands12
 async function pickCommandCommand() {
 	const editor = vscode.window.activeTextEditor;
 	let isIdxActive = false;
@@ -2878,27 +3872,6 @@ async function createMissingCommand(lineIndex?: number) {
 	await handleMissingFileCreation(fl, workspaceRoot);
 }
 
-const defaultKeybindings = [
-	{ "command": "idx.openIdx", "key": "` i", "when": "!idxFileActive" },
-	{ "command": "idx.update", "key": "f5", "when": "idxFileActive" },
-	{ "command": "idx.gotoFile", "key": "f2", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
-	{ "command": "idx.openFile", "key": "alt+f2", "when": "idxFileActive && editorHasSelection" },
-	{ "command": "idx.closeFile", "key": "f4", "when": "idxCursorOnFileLine || idxFileActive && editorHasSelection" },
-	{ "command": "idx.returnToIdx", "key": "` backspace", "when": "!idxFileActive" },
-	{ "command": "idx.returnToIdxPicker", "key": "` ctrl+backspace", "when": "!idxFileActive" },
-	{ "command": "idx.jumpAny", "key": "alt+` i", "when": "idxFileActive" },
-	{ "command": "idx.jumpWithin", "key": "alt+` alt+i", "when": "idxFileActive" },
-	{ "command": "idx.copyProjectUnlisted", "key": "alt+i ctrl+insert", "when": "idxFileActive" },
-	{ "command": "idx.copyProjectUnlistedPicker", "key": "alt+i alt+insert", "when": "idxFileActive" },
-	{ "command": "idx.toggleCheckbox", "key": "insert x" },
-	{ "command": "idx.collectEditors", "key": "ctrl+` f11" },
-	{ "command": "idx.closeAllMarkdownEditors", "key": "ctrl+` f4" },
-	{ "command": "idx.checkboxer", "key": "ctrl+alt+f10" },
-	{ "command": "idx.checkboxTag", "key": "ctrl+alt+shift+f10" },
-	{ "command": "idx.pickCommand", "key": "" },
-	{ "command": "idx.copyKeybindings", "key": "" }
-];
-
 function ensureDefaultKeybindings() {
 	try {
 		const userDir = getVSCodeUserDir();
@@ -2933,7 +3906,9 @@ function ensureDefaultKeybindings() {
 		// Silent fallback
 	}
 }
+//#endregion _commands12
 
+//#region _commands13
 async function setKeybindingsCommand() {
 	const userDir = getVSCodeUserDir();
 	const keybindingsFile = path.join(userDir, 'keybindings.json');
@@ -3061,7 +4036,7 @@ async function collectEditorsCommand() {
 	}
 
 	const targetGroupPickerItems: { label: string; viewColumn?: vscode.ViewColumn; isNew: boolean }[] = [];
-	
+
 	const groups = vscode.window.tabGroups.all;
 	const activeGroup = vscode.window.tabGroups.activeTabGroup;
 	const activeGroupIdx = groups.indexOf(activeGroup);
@@ -3081,7 +4056,7 @@ async function collectEditorsCommand() {
 			});
 		}
 	});
-	
+
 	targetGroupPickerItems.push({
 		label: "Move to New Group",
 		isNew: true
@@ -3169,7 +4144,9 @@ interface CloseQuickPickItem extends vscode.QuickPickItem {
 	action: 'all' | 'group';
 	group?: vscode.TabGroup;
 }
+//#endregion _commands13
 
+//#region _commands14
 async function closeAllMarkdownEditorsCommand() {
 	const config = vscode.workspace.getConfiguration("idx");
 	const idxFilename = config.get<string>("indexFilename", "idx.md");
@@ -3383,6 +4360,7 @@ async function addSelectedCheckboxesCommand() {
 		vscode.window.showInformationMessage("All lines in selection already have checkboxes.");
 	}
 }
+//#endregion _commands14
 //#endregion _commands
 
 //#region _setups
@@ -3438,8 +4416,27 @@ function watchSetup(context: vscode.ExtensionContext, manager: GutterDecorationM
 
 	return interval;
 }
+async function configureMarkdownFoldingSettings() {
+	// Access the targeted "[markdown]" configuration block
+	const config = vscode.workspace.getConfiguration('[markdown]');
 
+	// Target Global (User) settings. Use false if you only want to change it for the current workspace.
+	const targetConfiguration = vscode.ConfigurationTarget.Global;
+
+	try {
+		// Update each configuration property sequentially
+		await config.update('editor.folding', true, targetConfiguration);
+		await config.update('editor.foldingStrategy', 'provider', targetConfiguration);
+		await config.update('editor.showFoldingControls', 'mouseover', targetConfiguration);
+	} catch (error) {
+		console.error('Failed to automatically write markdown folding settings:', error);
+	}
+}
 function commandsSetup(context: vscode.ExtensionContext) {
+	registerNewCheckboxLineCommand(context);
+	registerCheckboxTagJumpCommand(context);
+	registerNewFilespecCommand(context);
+	registerFileMentionsCommand(context);
 	context.subscriptions.push(vscode.commands.registerCommand('idx.openIdx', async () => {
 		await openIdxCommand();
 	}));
@@ -3566,6 +4563,14 @@ export function activate(context: vscode.ExtensionContext) {
 	ensureDefaultKeybindings();
 	const manager = new GutterDecorationManager();
 	const interval = watchSetup(context, manager);
+
+	configureMarkdownFoldingSettings();
+	context.subscriptions.push(
+		vscode.languages.registerFoldingRangeProvider(
+			{ language: 'markdown', scheme: 'file' },
+			new AdvancedMarkdownFoldingProvider()
+		)
+	);
 
 	const Sbc_ = IdxStatusBarContainer;
 	Sbc_.init(context);

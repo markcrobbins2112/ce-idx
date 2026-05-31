@@ -1,6 +1,7 @@
 <!-- markdownlint-disable MD001 -->
 <!-- markdownlint-disable MD005 -->
 <!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD024 -->
 <!-- markdownlint-disable MD026 -->
 <!-- markdownlint-disable MD037 -->
 <!-- markdownlint-disable MD007 -->
@@ -35,13 +36,55 @@
 	- BUG
 	- DONE
 
+### [ ] New Command
+	- idx.fileMentions
+	- File Mentions
+	- key: alt+` m
+	- when: idxCursorOnFileLine
+	- provides a picker of other filespecs in the file
+	- focus change on items scrolls the editor
+	- item format
+		- separator: tag type [sortby]
+		- label: {checkbox state: [ ] = ToDo, [x] = ToReview, [X] = Done} {line number}
+		- description: {line text after tag}
+	- picker select - goto line
+
+### [X] New Command
+	- idx.checkboxTagJump
+	- Checkbox Tag Jump
+	- key: alt+` t
+	- provides a picker to find a specific chosen checkbox tag
+	- checkbox tags look like
+    	- '{checkbox} {none} {text}'
+    	- '{checkbox} NEW: {text}'
+    	- '{checkbox} OK: {text}'
+    	- '{checkbox} FIXED: {text}'
+    	- '{checkbox} FAIL: {text}'
+    	- '{checkbox} BUG: {text}'
+    	- '{checkbox} DONE: {text}'
+	- picker should provide a multi-select list of existing checkbox tags
+  		- items format
+    		- label: {tagname or 'none'}
+    		- description: Count: {count of checkbox tags of that type}
+		- choosing a checkbox tag type offers another picker
+			- list of all occurances of the checkbox tag of chosen type(s), multi select
+				- format
+  					- separator: tag type [sortby]
+  					- label: {checkbox state: [ ] = ToDo, [x] = ToReview, [X] = Done} {line number}
+  					- description: {line text after tag}
+  				- search: match all fields
+			- on item focus, scroll to item in editor
+			- on accept items offer a picker
+  				- Goto Line
+  				- Copy Lines
+
 ### [X] New Command
 	- idx.checkboxTag
 	- Checkbox Tag
 	- provides a picker to apply chosen tag to checkboxes
 	- ctrl+alt+shift+f10
 
-### [ ] New Command
+### [X] New Command
 	- idx.newCheckboxLine
 	- New Checkbox Line
   	- provides a picker
@@ -54,11 +97,11 @@
     	- preserve indents
    	- write an empty checkbox with the picker prefix
 
-### [ ] New Command
+### [X] New Command
 	- idx.newFilespec
 	- New Filespec
 	- when: always
-	- key: alt+i insert
+	- key: insert f
 	- provides a picker
 		- top item is 'select many'
 			- changes picker into multi-select
@@ -136,49 +179,13 @@
 
 ### [X] Command Renames
 
-| Keys              | Command Name                  | Command Description                               |
-| ----------------- | ----------------------------- | ------------------------------------------------- |
-| ` i               | idx.openIdx                   | Go To Index File                                  |
-| f5                | idx.update                    | Update Index File Listings                        |
-| f2                | idx.gotoFile                  | Edit Files                                        |
-| alt+f2            | idx.openFile                  | Open Files                                        |
-| f4                | idx.closeFile                 | Close Files                                       |
-| ` backspace       | idx.returnToIdx               | Return to Index Location                          |
-| ` ctrl+backspace  | idx.returnToIdxPicker         | Return to Index Location Picker                   |
-| alt+` i           | idx.jumpAny                   | Jump to Any File (List All)                       |
-| alt+` alt+i       | idx.jumpWithin                | Jump Within Index Listings                        |
-| alt+i ctrl+insert | idx.copyProjectUnlisted       | Copy Unindexed Filelines                          |
-| alt+i alt+insert  | idx.copyProjectUnlistedPicker | Copy Unindexed Filelines from Picker              |
-| insert x          | idx.toggleCheckbox            | Toggle Checkbox X                                 |
-| (none)            | idx.createMissing             | Create Missing File or Folder                     |
-| (none)            | idx.setKeybindings            | Set User Keybindings                              |
-| ctrl+` f11        | idx.collectEditors            | Collect and Group Editors                         |
-| ctrl+` f4         | idx.closeAllMarkdownEditors   | Close All Markdown Editors                        |
-| ctrl+alt+f10      | idx.checkboxer                | Checkbox Label Toggle                             |
-| (none)            | idx.copyKeybindings           | Copy Commands to Clipboard                        |
-| (none)            | idx.openSelectedFiles         | Open Selected Files (No Focus)                    |
-| (none)            | idx.closeSelectedFiles        | Close Selected Files                              |
-| (none)            | idx.gotoSelectedFile          | Go to Selected File/Folder                        |
-| (none)            | idx.checkSelectedCheckboxes   | Mark Selected Lines with Checkboxes as Complete   |
-| (none)            | idx.uncheckSelectedCheckboxes | Mark Selected Lines with Checkboxes as Incomplete |
-| (none)            | idx.removeSelectedCheckboxes  | Remove Selection Checkboxes                       |
-| (none)            | idx.addSelectedCheckboxes     | Add Checkboxes to Selection                       |
-
-### [X] Remove Commands
-	- idx.openSelectedFiles
-	- idx.closeSelectedFiles
-	- idx.gotoSelectedFile
-	- idx.checkSelectedCheckboxes
-	- idx.uncheckSelectedCheckboxes
-
 ## [ ] FAIL: Lines with no characters did not get a blank :before
 	- [ ] try this again and don't lose the working icon functionality
-
 
 ## [X] Use Glyph Margin instead of Gutter for icons [abort]
 	- [X] change the visibilty of the Glyph Margin to true automatically
 
-## [X] OK: Lines in idx.md should have a :before icon,
+## [X] Lines in idx.md should have a :before icon,
 	- if line does not have explicit icon, then use a blank so that all lines render equally spaced from the left
 
 ## [X] Line icon
