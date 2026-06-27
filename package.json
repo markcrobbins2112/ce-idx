@@ -1,5 +1,5 @@
 {
-	"name": "idx",
+	"name": "ce-idx",
 	"displayName": "Incredibly Desirable Experience",
 	"description": "Use Markdown as a file explorer",
 	"version": "0.1.0",
@@ -57,40 +57,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/markchristianrobbins/idx.git"
+		"url": "https://github.com/markcrobbins2112/ce-idx.git"
 	},
 	"bugs": {
-		"url": "https://github.com/markchristianrobbins/idx/issues"
+		"url": "https://github.com/markcrobbins2112/ce-idx/issues"
 	},
-	"homepage": "https://github.com/markchristianrobbins/idx#readme",
+	"homepage": "https://github.com/markcrobbins2112/ce=idx#readme",
 	"activationEvents": [
-		"onLanguage:markdown",
-		"onCommand:idx.openIdx",
-		"onCommand:idx.update",
-		"onCommand:idx.gotoFile",
-		"onCommand:idx.openFile",
-		"onCommand:idx.closeFile",
-		"onCommand:idx.returnToIdx",
-		"onCommand:idx.returnToIdxPicker",
-		"onCommand:idx.jumpAny",
-		"onCommand:idx.jumpWithin",
-		"onCommand:idx.copyProjectUnlisted",
-		"onCommand:idx.copyProjectUnlistedPicker",
-		"onCommand:idx.toggleCheckbox",
-		"onCommand:idx.createMissing",
-		"onCommand:idx.setKeybindings",
-		"onCommand:idx.collectEditors",
-		"onCommand:idx.closeAllMarkdownEditors",
-		"onCommand:idx.checkboxer",
-		"onCommand:idx.checkboxTag",
-		"onCommand:idx.pickCommand",
-		"onCommand:idx.copyKeybindings",
-		"onCommand:idx.removeSelectedCheckboxes",
-		"onCommand:idx.addSelectedCheckboxes",
-		"onCommand:idx.newFilespec",
-		"onCommand:idx.checkboxTagJump",
-		"onCommand:idx.fileMentions",
-		"onCommand:idx.newCheckboxLine"
+		"onLanguage:markdown"
 	],
 	"contributes": {
 		"commands": [

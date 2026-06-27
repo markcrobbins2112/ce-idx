@@ -3,7 +3,9 @@
 # 🗺️ Incredibly Desirable Experience (IDX)
 
 Welcome to the **Incredibly Desirable Experience (IDX)**!
+
 ![Logo](icon.jpg)
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/markcrobbins)
 
 This extension transforms standard Markdown files (default: `idx.md`) into your workspace's active, high-performance interactive file explorer index. Rather than wrestling with a chaotic directory tree or crowded browser sidebars, you can write rich, organized workspace indexes incorporating tasks checklist, progress ratios, headings, and detailed annotations. IDX dynamically parses these file structures, overlays real-time state decorations, and registers keyboard-centric commands to speed up your development flow.
 
