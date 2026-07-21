@@ -1,7 +1,12 @@
+---
+title: AILOG
+---
+
 <!-- markdownlint-disable MD009 -->
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD024 -->
-# AI Development Log - Incredibly Desirable Experience (IDX)
+
+# AILOG
 
 ## Commit Message
 ```text

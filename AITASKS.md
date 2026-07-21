@@ -1,3 +1,7 @@
+---
+title: AITASKS
+---
+
 <!-- markdownlint-disable MD001 -->
 <!-- markdownlint-disable MD005 -->
 <!-- markdownlint-disable MD013 -->
@@ -5,6 +9,7 @@
 <!-- markdownlint-disable MD026 -->
 <!-- markdownlint-disable MD037 -->
 <!-- markdownlint-disable MD007 -->
+
 # AITASKS
 
 ## [ ] Implement these and update the UPPERCASE.md files (Never check this item, just do it)

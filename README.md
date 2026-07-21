@@ -1,6 +1,11 @@
+---
+title: README
+---
+
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD038 -->
-# 🗺️ Incredibly Desirable Experience (IDX)
+
+# README
 
 Welcome to the **Incredibly Desirable Experience (IDX)**!
 

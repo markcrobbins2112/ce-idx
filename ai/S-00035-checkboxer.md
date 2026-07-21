@@ -1,12 +1,17 @@
 ---
-title: Checkboxer
+title: S-00035-checkboxer
 description:
 zdot: z.202605161942557398
 created: 2026-05-16 23:42
 updated: 2026-05-16 23:42
 completed: 2026-05-18 00:51
 tags:
+
+
 ---
+
+# S-00035-checkboxer
+
 ## Technical Specification
 - [X] OK: Bug [[B-00001,S-00035-prefix-keeps-accumulating-for-checkboxer]]
 - [X] OK: Bug [[B-00001,S-00035-have-unwanted-zdots-in-the-cycle]]

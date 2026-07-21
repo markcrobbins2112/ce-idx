@@ -1,5 +1,10 @@
+---
+title: FEATURES
+---
+
 <!-- markdownlint-disable MD013 -->
-# IDX Features Guide
+
+# FEATURES
 Back to [README](README.md)
 
 Welcome to **Incredibly Desirable Experience (IDX)**!

@@ -1,6 +1,11 @@
+---
+title: MANUAL
+---
+
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD040 -->
-# IDX Technical Manual
+
+# MANUAL
 
 This guide describes the structural architecture, module layout, internal algorithms, optimization behaviors, and technical specifications of the IDX VS Code Extension codebase.
 

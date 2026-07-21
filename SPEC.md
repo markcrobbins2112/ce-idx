@@ -1,5 +1,11 @@
+---
+title: SPEC
+---
+
 <!-- markdownlint-disable MD013 -->
-# IDX: Extension Specifications & Implementation Details
+<!-- markdownlint-disable MD025 -->
+
+# SPEC
 
 Back to [README](README.md)
 
