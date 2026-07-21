@@ -2,6 +2,7 @@ node_modules/
 build/
 dist/
 coverage/
+test-fixture/
 .DS_Store
 *.log
 .env*
@@ -9,3 +10,4 @@ coverage/
 *.vsix
 *.zip
 \!*.*
+test-fixture/parent/extension.ts
