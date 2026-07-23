@@ -253,7 +253,6 @@ title: AITASKS
 
 ## [X] More Checkbox cycling
 	- [X] when: always
-	- [X] see ai/S-00035-checkboxer.md
 	- [X] assign this to key ctrl+alt+f10
 
 ## [X] Checkbox cyclers apply to selected text
